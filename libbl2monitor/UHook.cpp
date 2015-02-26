@@ -145,7 +145,7 @@ namespace UHook
 								FName("omgcar"),
 								v,
 								{0, 0, 0},
-								NULL,
+								(AActor*)UObject::GObjObjects()->Data[98318 - 1],
 								0
 								);
 						}
