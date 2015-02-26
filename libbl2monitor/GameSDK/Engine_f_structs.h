@@ -20,6 +20,29 @@
 # ========================================================================================= #
 */
 
+// Function Engine.SkeletalMeshComponent.GetBoneLocation
+// [0x00024401] ( FUNC_Final | FUNC_Native )
+struct USkeletalMeshComponent_execGetBoneLocation_Parms
+{
+	struct FName                                       BoneName;                                         		// 0x0000 (0x0008) [0x0000000000000080]              ( CPF_Parm )
+	int                                                Space;                                            		// 0x0008 (0x0004) [0x0000000000000090]              ( CPF_OptionalParm | CPF_Parm )
+	struct FVector                                     ReturnValue;                                      		// 0x000C (0x000C) [0x0000000000000580]              ( CPF_Parm | CPF_OutParm | CPF_ReturnParm )
+};
+
+// Function Engine.Actor.Spawn
+// [0x00024401] ( FUNC_Final | FUNC_Native )
+struct AActor_execSpawn_Parms
+{
+	class UClass*                                      SpawnClass;                                       		// 0x0000 (0x0004) [0x0000000000000080]              ( CPF_Parm )
+	class AActor*                                      SpawnOwner;                                       		// 0x0004 (0x0004) [0x0000000000000090]              ( CPF_OptionalParm | CPF_Parm )
+	struct FName                                       SpawnTag;                                         		// 0x0008 (0x0008) [0x0000000000000090]              ( CPF_OptionalParm | CPF_Parm )
+	struct FVector                                     SpawnLocation;                                    		// 0x0010 (0x000C) [0x0000000000000090]              ( CPF_OptionalParm | CPF_Parm )
+	struct FRotator                                    SpawnRotation;                                    		// 0x001C (0x000C) [0x0000000000000090]              ( CPF_OptionalParm | CPF_Parm )
+	class AActor*                                      ActorTemplate;                                    		// 0x0028 (0x0004) [0x0000000000000090]              ( CPF_OptionalParm | CPF_Parm )
+	unsigned long                                      bNoCollisionFail : 1;                             		// 0x002C (0x0004) [0x0000000000000090] [0x00000001] ( CPF_OptionalParm | CPF_Parm )
+	class AActor*                                      ReturnValue;                                      		// 0x0030 (0x0004) [0x0000000000000D80]              ( CPF_Parm | CPF_OutParm | CPF_ReturnParm | CPF_CoerceParm )
+};
+
 // Function Engine.Console.ConsoleCommand
 // [0x00020802] ( FUNC_Event )
 struct UConsole_eventConsoleCommand_Parms

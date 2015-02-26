@@ -61,7 +61,7 @@ struct FName
 	int Index;
 	int Number;
 
-private:
+public:
 	FName() {};
 
 public:

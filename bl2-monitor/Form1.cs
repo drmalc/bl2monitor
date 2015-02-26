@@ -28,7 +28,7 @@ namespace bl2_monitor
         //Log
         private String logBuffer;
         private System.IO.StreamWriter log_file;
-        private bool log_to_file = false; //log to a file instead of the console. Usefull for the debug messages. Produces large files, be careful.
+        private bool log_to_file = true; //log to a file instead of the console. Usefull for the debug messages. Produces large files, be careful.
         private bool show_debug_in_console = false; //not recommended, significantly slows down the game.
 
         //Other
@@ -194,6 +194,11 @@ namespace bl2_monitor
             timer_exec = false;
 
             statusTimer.Enabled = true;
+        }
+
+        private void logTextBox_TextChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

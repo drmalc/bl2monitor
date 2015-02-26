@@ -105,7 +105,40 @@ namespace UHook
 			if (strcmp(name, "F1") == 0)
 			{
 				Log::info("InputKey soft hook called for key F1.");
+				UObject* gameEngine = bl2Methods::getGameEngine();
+				Log::info("Game engine is: 0x%p", gameEngine);
+				//UObject::dumpObjects();
+				if (gameEngine)
+				{
+					UEngine *e = (UEngine*)gameEngine;
+					ULocalPlayer *localPlayer = (ULocalPlayer*)e->GamePlayers(0);
 
+					Log::info("Local Player: 0x%p", localPlayer);
+					if (localPlayer)
+					{
+						UPlayer *player = (UPlayer*)localPlayer;
+						APlayerController *actor = player->Actor;
+
+						Log::info("Actor: 0x%p", actor);
+						if (actor)
+						{
+							//Crash
+							return true;
+
+							// class UClass* SpawnClass, class AActor* SpawnOwner, struct FName SpawnTag, struct FVector SpawnLocation, struct FRotator SpawnRotation, class AActor* ActorTemplate, unsigned long bNoCollisionFail
+							actor->Spawn(
+								AWillowVehicle_WheeledVehicle::StaticClass(),
+								NULL,
+								FName("omgcar"),
+								actor->Pawn->Mesh->GetBoneLocation(FName("Head"), 0),
+								{0, 0, 0},
+								NULL,
+								0
+								);
+						}
+					}
+
+				}
 			}
 		}
 

@@ -9,6 +9,7 @@
 namespace bl2Methods
 {
 	static UConsole* gameConsole = NULL;
+	static UWillowGameEngine* gameEngine = NULL;
 
 	void logToConsole(const char *text)
 	{
@@ -40,5 +41,22 @@ namespace bl2Methods
 
 			delete[] wcstring;
 		}
+	}
+
+	UWillowGameEngine* getGameEngine()
+	{
+		if (gameEngine)
+			return gameEngine;
+
+		gameEngine = (UWillowGameEngine*)UObject::FindObject<UObject>("WillowGameEngine Transient.WillowGameEngine_0");
+
+		return gameEngine;
+	}
+
+	UPlayer* localPlayer()
+	{
+		UPlayer *p = (UPlayer*)UObject::FindObject<UObject>("ObjectProperty Engine.Player:Actor");
+
+		return p;
 	}
 }
