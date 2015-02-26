@@ -105,9 +105,22 @@ namespace UHook
 			if (strcmp(name, "F1") == 0)
 			{
 				Log::info("InputKey soft hook called for key F1.");
+
+
+				/*//dump GObjObjects
+				TArray< UObject* >* ar = UObject::GObjObjects();
+				TArray< UObject* >	r = *ar;
+				int k = ar->Count;
+				for (int i = 0; k > i; i++)
+				{
+					Log::debug("GObjObjects | %s", ((UObject*)(r(i)))->GetFullName().c_str());
+				}
+				return true;*/
+
+				//UObject::dumpObjects();
+
 				UObject* gameEngine = bl2Methods::getGameEngine();
 				Log::info("Game engine is: 0x%p", gameEngine);
-				//UObject::dumpObjects();
 				if (gameEngine)
 				{
 					UEngine *e = (UEngine*)gameEngine;
@@ -122,15 +135,15 @@ namespace UHook
 						Log::info("Actor: 0x%p", actor);
 						if (actor)
 						{
-							//Crash
-							return true;
+							FVector v = actor->Pawn->Mesh->GetBoneLocation(FName("Head"), 0);
+							Log::info("Position: %.2f / %.2f / %.2f", v.X, v.Y, v.Z);
 
 							// class UClass* SpawnClass, class AActor* SpawnOwner, struct FName SpawnTag, struct FVector SpawnLocation, struct FRotator SpawnRotation, class AActor* ActorTemplate, unsigned long bNoCollisionFail
 							actor->Spawn(
 								AWillowVehicle_WheeledVehicle::StaticClass(),
 								NULL,
 								FName("omgcar"),
-								actor->Pawn->Mesh->GetBoneLocation(FName("Head"), 0),
+								v,
 								{0, 0, 0},
 								NULL,
 								0

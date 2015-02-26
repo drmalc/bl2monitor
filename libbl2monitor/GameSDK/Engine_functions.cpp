@@ -40,7 +40,7 @@ struct FVector USkeletalMeshComponent::GetBoneLocation(struct FName BoneName, in
 	static UFunction* pFnGetBoneLocation = NULL;
 
 	if (!pFnGetBoneLocation)
-		pFnGetBoneLocation = (UFunction*)UObject::GObjObjects()->Data[11494];
+		pFnGetBoneLocation = (UFunction*)UObject::GObjObjects()->Data[11534 - 1];
 
 	USkeletalMeshComponent_execGetBoneLocation_Parms GetBoneLocation_Parms;
 	memcpy(&GetBoneLocation_Parms.BoneName, &BoneName, 0x8);
@@ -72,7 +72,7 @@ class AActor* AActor::Spawn(class UClass* SpawnClass, class AActor* SpawnOwner, 
 	static UFunction* pFnSpawn = NULL;
 
 	if (!pFnSpawn)
-		pFnSpawn = (UFunction*)UObject::GObjObjects()->Data[7348];
+		pFnSpawn = (UFunction*)UObject::GObjObjects()->Data[7381 - 1];
 
 	AActor_execSpawn_Parms Spawn_Parms;
 	Spawn_Parms.SpawnClass = SpawnClass;
