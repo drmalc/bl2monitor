@@ -21,7 +21,9 @@ namespace bl2_monitor
     {
         //String constants
         private const String process_name = "Borderlands2";
+        private const String dll_dir = "\\data\\dll\\";
         private const String dll_name = "libbl2monitor.dll";
+        private const String lua_dll = "lua51.dll";
         private const String pipe_name = "\\\\.\\pipe\\bl2monitorpipe";
         private const String log_file_name = @"C:\temp\bl2monitor.log"; //Not used by default. Feel free to change.
 
@@ -165,7 +167,8 @@ namespace bl2_monitor
                         Process currentProc = Process.GetCurrentProcess();
                         String procPath = currentProc.MainModule.FileName;
                         String dirPath = Directory.GetParent(procPath).FullName;
-                        String dllPath = Directory.GetFiles(dirPath, dll_name)[0];
+                        String dllPath = Directory.GetFiles(dirPath + dll_dir, dll_name)[0];
+                        String luaPath = Directory.GetFiles(dirPath + dll_dir, lua_dll)[0];
 
                         IntPtr procPtr = OpenProcess(PROCESS_VM_WRITE | PROCESS_VM_READ | PROCESS_CREATE_THREAD | PROCESS_VM_OPERATION | PROCESS_QUERY_INFORMATION, 0, processId);
 
@@ -174,7 +177,17 @@ namespace bl2_monitor
                             IntPtr loadPtr = GetProcAddress(GetModuleHandle("kernel32.dll"), "LoadLibraryA");
                             if (loadPtr != (IntPtr)0)
                             {
-                                IntPtr lpAddress = VirtualAllocEx(procPtr, (IntPtr)null, (IntPtr)dllPath.Length, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+                                //lua
+                                IntPtr lpAddress = VirtualAllocEx(procPtr, (IntPtr)null, (IntPtr)luaPath.Length, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+                                if (lpAddress != (IntPtr)0)
+                                {
+                                    byte[] bytes = Encoding.ASCII.GetBytes(luaPath);
+                                    WriteProcessMemory(procPtr, lpAddress, bytes, (uint)bytes.Length, 0);
+                                    CreateRemoteThread(procPtr, (IntPtr)null, (IntPtr)0, loadPtr, lpAddress, 0, (IntPtr)null);
+                                }
+
+                                //main dll
+                                lpAddress = VirtualAllocEx(procPtr, (IntPtr)null, (IntPtr)dllPath.Length, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
                                 if (lpAddress != (IntPtr)0)
                                 {
                                     byte[] bytes = Encoding.ASCII.GetBytes(dllPath);
@@ -182,11 +195,11 @@ namespace bl2_monitor
 
                                     IntPtr remoteThread = CreateRemoteThread(procPtr, (IntPtr)null, (IntPtr)0, loadPtr, lpAddress, 0, (IntPtr)null);
 
-                                    CloseHandle(procPtr);
                                     statusLabel.Text = "Ready.";
                                     targetReady = true;
                                 }
                             }
+                            CloseHandle(procPtr);
                         }
                     }
                 }

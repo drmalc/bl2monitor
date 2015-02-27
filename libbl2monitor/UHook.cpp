@@ -7,6 +7,7 @@
 #include "Hook.h"
 #include "GameHooks.h"
 #include "bl2Methods.h"
+#include "CLua.h"
 
 using namespace std;
 
@@ -87,7 +88,7 @@ namespace UHook
 	{
 		Log::info("GetCanvas soft hook called.");
 
-		//InitializeLua();
+		CLua::Initialize();
 
 		GameHooks::EngineHookManager->RemoveStaticHook(function, "GetCanvas");
 		GameHooks::EngineHookManager->Register("Function WillowGame.WillowGameViewportClient:InputKey", "InputKey", &InputKey);
@@ -105,7 +106,6 @@ namespace UHook
 			if (strcmp(name, "F1") == 0)
 			{
 				Log::info("InputKey soft hook called for key F1.");
-
 
 				/*//dump GObjObjects
 				TArray< UObject* >* ar = UObject::GObjObjects();
@@ -135,9 +135,12 @@ namespace UHook
 						Log::info("Actor: 0x%p", actor);
 						if (actor)
 						{
+							return true;
+
 							FVector v = actor->Pawn->Mesh->GetBoneLocation(FName("Head"), 0);
 							Log::info("Position: %.2f / %.2f / %.2f", v.X, v.Y, v.Z);
 
+							// Doesnt work.
 							// class UClass* SpawnClass, class AActor* SpawnOwner, struct FName SpawnTag, struct FVector SpawnLocation, struct FRotator SpawnRotation, class AActor* ActorTemplate, unsigned long bNoCollisionFail
 							actor->Spawn(
 								AWillowVehicle_WheeledVehicle::StaticClass(),
@@ -145,8 +148,8 @@ namespace UHook
 								FName("omgcar"),
 								v,
 								{0, 0, 0},
-								NULL,
-								0
+								(AActor*)UObject::GObjObjects()->Data[98318 - 1],
+								1
 								);
 						}
 					}

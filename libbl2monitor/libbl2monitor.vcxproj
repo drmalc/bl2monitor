@@ -41,9 +41,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)$(Configuration)\data\dll</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)$(Configuration)\data\dll</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -51,10 +53,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;LIBBL2MONITOR_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)/GameSDK;$(ProjectDir)/lua</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(SolutionDir)\ext\lua51.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -65,7 +69,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBBL2MONITOR_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)/GameSDK;$(ProjectDir)/APIHijack</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)/GameSDK;$(ProjectDir)/lua</AdditionalIncludeDirectories>
       <UndefinePreprocessorDefinitions>
       </UndefinePreprocessorDefinitions>
     </ClCompile>
@@ -74,11 +78,13 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>$(SolutionDir)\ext\lua51.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="bl2Methods.h" />
     <ClInclude Include="CHookManager.h" />
+    <ClInclude Include="CLua.h" />
     <ClInclude Include="CSigScan.h" />
     <ClInclude Include="GameHooks.h" />
     <ClInclude Include="GameSDK\Core_classes.h" />
@@ -88,10 +94,27 @@
     <ClInclude Include="GameSDK\Engine_f_structs.h" />
     <ClInclude Include="GameSDK\Engine_structs.h" />
     <ClInclude Include="GameSDK\GameDefines.h" />
+    <ClInclude Include="GameSDK\GameFramework_classes.h" />
+    <ClInclude Include="GameSDK\GameFramework_f_structs.h" />
+    <ClInclude Include="GameSDK\GameFramework_structs.h" />
     <ClInclude Include="GameSDK\GameSDK.h" />
+    <ClInclude Include="GameSDK\GearboxFramework_classes.h" />
+    <ClInclude Include="GameSDK\GearboxFramework_structs.h" />
+    <ClInclude Include="GameSDK\GFxUI_classes.h" />
+    <ClInclude Include="GameSDK\GFxUI_f_structs.h" />
+    <ClInclude Include="GameSDK\GFxUI_structs.h" />
     <ClInclude Include="GameSDK\Signatures.h" />
+    <ClInclude Include="GameSDK\WillowGame_classes.h" />
+    <ClInclude Include="GameSDK\WillowGame_f_structs.h" />
+    <ClInclude Include="GameSDK\WillowGame_structs.h" />
     <ClInclude Include="Hook.h" />
     <ClInclude Include="Log.h" />
+    <ClInclude Include="lua\lauxlib.h" />
+    <ClInclude Include="lua\lua.h" />
+    <ClInclude Include="lua\lua.hpp" />
+    <ClInclude Include="lua\luaconf.h" />
+    <ClInclude Include="lua\luajit.h" />
+    <ClInclude Include="lua\lualib.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="UHook.h" />
@@ -99,6 +122,7 @@
   <ItemGroup>
     <ClCompile Include="bl2Methods.cpp" />
     <ClCompile Include="CHookManager.cpp" />
+    <ClCompile Include="CLua.cpp" />
     <ClCompile Include="CSigScan.cpp" />
     <ClCompile Include="dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
@@ -111,6 +135,8 @@
     <ClCompile Include="GameHooks.cpp" />
     <ClCompile Include="GameSDK\Core_functions.cpp" />
     <ClCompile Include="GameSDK\Engine_functions.cpp" />
+    <ClCompile Include="GameSDK\GFxUI_functions.cpp" />
+    <ClCompile Include="GameSDK\WillowGame_functions.cpp" />
     <ClCompile Include="Hook.cpp" />
     <ClCompile Include="libbl2monitor.cpp" />
     <ClCompile Include="Log.cpp" />
