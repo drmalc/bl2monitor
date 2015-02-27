@@ -149,7 +149,11 @@ namespace UHook
 								v,
 								{0, 0, 0},
 								(AActor*)UObject::GObjObjects()->Data[98318 - 1],
+<<<<<<< HEAD
 								1
+=======
+								0
+>>>>>>> 7a597195e2fc1164248138739b8e3322b0200ac3
 								);
 						}
 					}
