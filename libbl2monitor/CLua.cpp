@@ -61,6 +61,7 @@ namespace CLua
 		return 0;
 	}
 
+	//Global functions
 	static const luaL_Reg base_funcs[] = {
 		{ "ping", ping },
 		{ "luaPath", luaPath },
@@ -68,6 +69,7 @@ namespace CLua
 		{ NULL, NULL }
 	};
 
+	//"log" library
 	static const luaL_Reg log[] = {
 		{ "server", logServer },
 		{ "console", logConsole },
@@ -91,6 +93,9 @@ namespace CLua
 		luaL_setfuncs(m_pState, log, 0);
 		lua_pushvalue(m_pState, -1);
 		lua_setglobal(m_pState, "log");
+
+		//reset the stack (not required)
+		lua_settop(m_pState, 0);
 
 		const char	*mainLua = Utilities::MainLuaPath();
 		Log::info("Lua initialized (" LUA_VERSION "). Loading %s...", mainLua);

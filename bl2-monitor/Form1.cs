@@ -25,6 +25,7 @@ namespace bl2_monitor
         private const String dll_name = "libbl2monitor.dll";
         private const String lua_dll = "lua52.dll";
         private const String gwen_dll = "gwen.dll";
+        private const String luacpp_dll = "LuaCppInterface.dll";
         private const String pipe_name = "\\\\.\\pipe\\bl2monitorpipe";
         private const String utils_pipe_name = "\\\\.\\pipe\\bl2monitorpipeutils";
         private const String log_file_name = @"C:\temp\bl2monitor.log"; //Not used by default. Feel free to change.
@@ -183,6 +184,19 @@ namespace bl2_monitor
             }
         }
 
+        private IntPtr load_dll(String path, IntPtr procPtr, IntPtr loadPtr)
+        {
+            IntPtr lpAddress = VirtualAllocEx(procPtr, (IntPtr)null, (IntPtr)path.Length, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+            if (lpAddress != (IntPtr)0)
+            {
+                byte[] bytes = Encoding.ASCII.GetBytes(path);
+                WriteProcessMemory(procPtr, lpAddress, bytes, (uint)bytes.Length, 0);
+
+                return CreateRemoteThread(procPtr, (IntPtr)null, (IntPtr)0, loadPtr, lpAddress, 0, (IntPtr)null);
+            }
+            return (IntPtr)0;
+        }
+
         private void update_timer(object sender, ElapsedEventArgs e)
         {
             timer_exec = true;
@@ -220,6 +234,7 @@ namespace bl2_monitor
                         String dllPath = Directory.GetFiles(dirPath + dll_dir, dll_name)[0];
                         String luaPath = Directory.GetFiles(dirPath + dll_dir, lua_dll)[0];
                         String gwenPath = Directory.GetFiles(dirPath + dll_dir, gwen_dll)[0];
+                        String luacppPath = Directory.GetFiles(dirPath + dll_dir, luacpp_dll)[0];
 
                         serverPath = procPath;
                         serverDirPath = dirPath;
@@ -232,32 +247,18 @@ namespace bl2_monitor
                             if (loadPtr != (IntPtr)0)
                             {
                                 //lua
-                                IntPtr lpAddress = VirtualAllocEx(procPtr, (IntPtr)null, (IntPtr)luaPath.Length, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
-                                if (lpAddress != (IntPtr)0)
-                                {
-                                    byte[] bytes = Encoding.ASCII.GetBytes(luaPath);
-                                    WriteProcessMemory(procPtr, lpAddress, bytes, (uint)bytes.Length, 0);
-                                    CreateRemoteThread(procPtr, (IntPtr)null, (IntPtr)0, loadPtr, lpAddress, 0, (IntPtr)null);
-                                }
+                                load_dll(luaPath, procPtr, loadPtr);
+
+                                //LuaCppInterface
+                                load_dll(luacppPath, procPtr, loadPtr);
 
                                 //gwen
-                                lpAddress = VirtualAllocEx(procPtr, (IntPtr)null, (IntPtr)gwenPath.Length, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
-                                if (lpAddress != (IntPtr)0)
-                                {
-                                    byte[] bytes = Encoding.ASCII.GetBytes(gwenPath);
-                                    WriteProcessMemory(procPtr, lpAddress, bytes, (uint)bytes.Length, 0);
-                                    CreateRemoteThread(procPtr, (IntPtr)null, (IntPtr)0, loadPtr, lpAddress, 0, (IntPtr)null);
-                                }
+                                load_dll(gwenPath, procPtr, loadPtr);
 
                                 //main dll
-                                lpAddress = VirtualAllocEx(procPtr, (IntPtr)null, (IntPtr)dllPath.Length, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
-                                if (lpAddress != (IntPtr)0)
+                                IntPtr remoteThread = load_dll(dllPath, procPtr, loadPtr);
+                                if (remoteThread != (IntPtr)0)
                                 {
-                                    byte[] bytes = Encoding.ASCII.GetBytes(dllPath);
-                                    WriteProcessMemory(procPtr, lpAddress, bytes, (uint)bytes.Length, 0);
-
-                                    IntPtr remoteThread = CreateRemoteThread(procPtr, (IntPtr)null, (IntPtr)0, loadPtr, lpAddress, 0, (IntPtr)null);
-
                                     statusLabel.Text = "Ready.";
                                     targetReady = true;
                                 }
