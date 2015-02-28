@@ -23,7 +23,7 @@ namespace bl2_monitor
         private const String process_name = "Borderlands2";
         private const String dll_dir = "\\data\\dll\\";
         private const String dll_name = "libbl2monitor.dll";
-        private const String lua_dll = "lua51.dll";
+        private const String lua_dll = "lua52.dll";
         private const String gwen_dll = "gwen.dll";
         private const String pipe_name = "\\\\.\\pipe\\bl2monitorpipe";
         private const String utils_pipe_name = "\\\\.\\pipe\\bl2monitorpipeutils";

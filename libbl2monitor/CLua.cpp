@@ -1,14 +1,10 @@
 #include "stdafx.h"
 #include "CLua.h"
 #include "Log.h"
-#pragma comment( lib, "lua51" )
+#pragma comment( lib, "lua52" )
 #include "lua.hpp"
 #include "Utilities.h"
 #include "bl2Methods.h"
-
-#if LUA_VERSION_NUM < 520
-#define luaL_newlib(x, y) luaL_register(x, #y, y)
-#endif
 
 namespace CLua
 {
@@ -84,15 +80,17 @@ namespace CLua
 			return;
 
 		m_pState = luaL_newstate();
-		luaL_openlibs(m_pState); //Opens all standard Lua libraries into the given state. 
-		lua_pushvalue(m_pState, LUA_GLOBALSINDEX);
-		luaL_register(m_pState, NULL, base_funcs); //register global functions
+		luaL_openlibs(m_pState); //Opens all standard Lua libraries into the given state.
+
+		//register global functions
+		lua_getglobal(m_pState, "_G");
+		luaL_setfuncs(m_pState, base_funcs, 0);
 
 		//Register local libraries
-		luaL_newlib(m_pState, log);
-
-		//gwen
-
+		lua_newtable(m_pState);
+		luaL_setfuncs(m_pState, log, 0);
+		lua_pushvalue(m_pState, -1);
+		lua_setglobal(m_pState, "log");
 
 		const char	*mainLua = Utilities::MainLuaPath();
 		Log::info("Lua initialized (" LUA_VERSION "). Loading %s...", mainLua);
