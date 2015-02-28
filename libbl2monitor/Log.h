@@ -6,49 +6,32 @@
 #include <ctime>
 #include <stdio.h>
 #include <stdarg.h>
-
-#define USEFILE 0 //log to file, not to pipe. Deprecated, use server-side setting instead.
+#include "NamedPipe.h"
 
 class Log
 {
 private:
-#if USEFILE
-	static const char filePath[];
-	static std::ofstream logFile;
-#else
-	static const char Log::pipeName[];
-	static HANDLE hpipe;
-	static bool pipeIsOpen;
-#endif
+	static NamedPipe *pipe;
 	static bool logDebug;
+	static const char pipeName[];
 
-	static void openFile(){
-#if USEFILE
-		if (!logFile.is_open()){
-			logFile.open(filePath, std::ofstream::out);
-			logFile.clear();
-			logFile << "-- Session started --" << std::endl;
-		}
-#else
-		if (pipeIsOpen)
+	static void openFile()
+	{
+		if (!pipe)
+			pipe = new NamedPipe(pipeName);
+		if (pipe->IsOpen())
 			return;
-		hpipe = CreateFileA(pipeName, GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
-		pipeIsOpen = true;
-		DWORD bytesWritten;
-		WriteFile(hpipe, "--- Session started ---\n", 24, &bytesWritten, NULL);
-#endif
+		pipe->Open();
+		pipe->Write("--- Session started ---\n", 24);
 	}
 
 	static void closeFile(){
-#if USEFILE
-		if (logFile.is_open()){
-			logFile.close();
+		if (pipe)
+		{
+			pipe->Close();
+			delete pipe;
+			pipe = NULL;
 		}
-#else
-		if (pipeIsOpen)
-			CloseHandle(hpipe);
-		pipeIsOpen = false;
-#endif
 	}
 
 	static void printText(const char* label, const char* text, va_list args)
@@ -66,14 +49,7 @@ private:
 		char buffer2[1000] = { 0 };
 		bsize = sprintf_s(buffer2, sizeof(buffer2), "%02d:%02d:%02d %s %s\n", now.tm_hour, now.tm_min, now.tm_sec, label, buffer);
 
-#if USEFILE
-		(void)bsize;
-		logfile << buffer;
-		logFile.flush();
-#else
-		DWORD bytesWritten;
-		WriteFile(hpipe, buffer2, bsize, &bytesWritten, NULL);
-#endif
+		pipe->Write(buffer2, bsize);
 	}
 
 public:

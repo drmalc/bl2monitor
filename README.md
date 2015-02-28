@@ -14,4 +14,4 @@ Notes:
 - removed dependency to detour
 - new launcher (no need to launch the game from the gui)
 - no d3d hook yet
-- no lua capabilities yet
+- lua is implemented, still needs a lot of work

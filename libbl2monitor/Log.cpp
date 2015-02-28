@@ -6,12 +6,6 @@
 
 using namespace std;
 
-#if USEFILE
-const char Log::filePath[] = "C:\\temp\\bl2monitor.log";
-ofstream Log::logFile;
-#else
-bool Log::pipeIsOpen = false;
-HANDLE Log::hpipe;
+NamedPipe *Log::pipe = NULL;
 const char Log::pipeName[] = "\\\\.\\pipe\\bl2monitorpipe";
-#endif
 bool Log::logDebug = false;

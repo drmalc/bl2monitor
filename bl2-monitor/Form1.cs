@@ -25,6 +25,7 @@ namespace bl2_monitor
         private const String dll_name = "libbl2monitor.dll";
         private const String lua_dll = "lua51.dll";
         private const String pipe_name = "\\\\.\\pipe\\bl2monitorpipe";
+        private const String utils_pipe_name = "\\\\.\\pipe\\bl2monitorpipeutils";
         private const String log_file_name = @"C:\temp\bl2monitor.log"; //Not used by default. Feel free to change.
 
         //Log
@@ -36,19 +37,24 @@ namespace bl2_monitor
         //Other
         private bool targetReady = false;
         private int processId = 0;
-        private CSNamedPipe.NamedPipeServer PServer1;
+        private CSNamedPipe.NamedPipeServer PServer1, PServerUtils;
         private System.Timers.Timer statusTimer;
         private bool timer_exec = false; //FIXME. Awful workaround to make sure the timer is stopped as the form closes. Will make the user click Close twice sometimes.
+        private String reqBuffer;
+
+        //Paths
+        private String serverPath;
+        private String serverDirPath;
 
         //kernel32 stuff
-        const uint PROCESS_CREATE_THREAD = 0x2;
-        const uint PROCESS_VM_OPERATION = 0x8;
-        const uint PROCESS_VM_WRITE = 0x0020;
-        const uint PROCESS_QUERY_INFORMATION = 0x400;
-        const uint PROCESS_VM_READ = 0x0010;
-        const uint MEM_COMMIT = 0x00001000;
-        const uint MEM_RESERVE = 0x00002000;
-        const uint PAGE_EXECUTE_READWRITE = 0x40;
+        private const uint PROCESS_CREATE_THREAD = 0x2;
+        private const uint PROCESS_VM_OPERATION = 0x8;
+        private const uint PROCESS_VM_WRITE = 0x0020;
+        private const uint PROCESS_QUERY_INFORMATION = 0x400;
+        private const uint PROCESS_VM_READ = 0x0010;
+        private const uint MEM_COMMIT = 0x00001000;
+        private const uint MEM_RESERVE = 0x00002000;
+        private const uint PAGE_EXECUTE_READWRITE = 0x40;
         [DllImport("kernel32.dll")]
         private static extern int CloseHandle(IntPtr hObject);
         [DllImport("kernel32.dll")]
@@ -72,6 +78,7 @@ namespace bl2_monitor
         private void Form1_FormClosing(Object sender, FormClosingEventArgs e)
         {
             PServer1.StopServer();
+            PServerUtils.StopServer();
 
             statusTimer.Stop();
             if (timer_exec)//FIXME properly invalidate the timer.
@@ -96,15 +103,53 @@ namespace bl2_monitor
 
             //Create local named pipe
             CSNamedPipe.DataReceivedCallbackType cb = new CSNamedPipe.DataReceivedCallbackType(this.pipe_received_data);
-
             PServer1 = new CSNamedPipe.NamedPipeServer(pipe_name, 0);
             PServer1.Start(cb);
+
+            CSNamedPipe.DataReceivedCallbackType cb_utils = new CSNamedPipe.DataReceivedCallbackType(this.pipe_received_data_utils);
+            PServerUtils = new CSNamedPipe.NamedPipeServer(utils_pipe_name, 0);
+            PServerUtils.Start(cb_utils);
 
             //Start the status timer
             statusTimer.Enabled = true;
         }
 
-        //Callback
+        //--- Callbacks ---
+        //This is the pipe the client/server use to exchange information such as settings
+        //Requests are clear ascii text delimited by "\n"
+        public void pipe_received_data_utils(String str)
+        {
+            str = Regex.Replace(str, @"[^\u0001-\u007F]", string.Empty); //Remove non-ascii characters.
+            reqBuffer += str;
+
+            int index = -1;
+            while ((index = reqBuffer.IndexOf("\n")) >= 0)
+            {
+                str = reqBuffer.Substring(0, index);
+                reqBuffer = reqBuffer.Substring(index + 1);
+
+                Invoke(new MethodInvoker(() =>
+                {
+                    logTextBox.AppendText("Server received request: " + str + Environment.NewLine);
+                    if ("PATH" == str)
+                    {
+                        PServerUtils.SendMessage(serverDirPath+"\n", PServerUtils.clientse);
+                    }
+                    else if ("LUAMAIN" == str)
+                    {
+                        PServerUtils.SendMessage(serverDirPath + Path.DirectorySeparatorChar + "data" + Path.DirectorySeparatorChar + "lua" + Path.DirectorySeparatorChar + "autorun.lua\n", PServerUtils.clientse);
+                    }
+                    else
+                    {
+                        logTextBox.AppendText("Server received unknown request: " + str + Environment.NewLine);
+                    }
+                    
+                }));
+            }
+        }
+
+        //This is the pipe for client logs (read only)
+        //Logs are clear ascii text delimited by "\n"
         public void pipe_received_data(String str)
         {
             str = Regex.Replace(str, @"[^\u0001-\u007F]", string.Empty); //Remove non-ascii characters.
@@ -170,6 +215,9 @@ namespace bl2_monitor
                         String dllPath = Directory.GetFiles(dirPath + dll_dir, dll_name)[0];
                         String luaPath = Directory.GetFiles(dirPath + dll_dir, lua_dll)[0];
 
+                        serverPath = procPath;
+                        serverDirPath = dirPath;
+
                         IntPtr procPtr = OpenProcess(PROCESS_VM_WRITE | PROCESS_VM_READ | PROCESS_CREATE_THREAD | PROCESS_VM_OPERATION | PROCESS_QUERY_INFORMATION, 0, processId);
 
                         if (procPtr != (IntPtr)0)
@@ -207,11 +255,6 @@ namespace bl2_monitor
             timer_exec = false;
 
             statusTimer.Enabled = true;
-        }
-
-        private void logTextBox_TextChanged(object sender, EventArgs e)
-        {
-
         }
     }
 }

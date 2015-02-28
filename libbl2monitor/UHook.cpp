@@ -8,6 +8,7 @@
 #include "GameHooks.h"
 #include "bl2Methods.h"
 #include "CLua.h"
+#include "Utilities.h"
 
 using namespace std;
 
@@ -43,7 +44,7 @@ namespace UHook
 	FMalloc** pGMalloc;
 
 	//Hard hooks
-	Hook	*processEventHook;
+	Hook	*processEventHook = NULL, *callFunctionHook = NULL;
 
 	// --- Callbacks for hooked functions
 	void _stdcall hookedProcessEvent(UFunction* fct, void* Parms, void* result)
@@ -66,6 +67,19 @@ namespace UHook
 		processEventHook->Unpatch();
 		pProcessEvent(pThis, fct, Parms, result);
 		processEventHook->Patch();
+	}
+
+	void __stdcall hookedCallFunction(FFrame& stack, void* const result, UFunction* function)
+	{
+		UObject* pThis;
+		_asm mov pThis, ecx;
+
+
+
+		//Call original function
+		callFunctionHook->Unpatch();
+		pCallFunction(pThis, stack, result, function);
+		callFunctionHook->Patch();
 	}
 
 	// --- Soft hooks
@@ -103,7 +117,13 @@ namespace UHook
 		if (realParms->EventType == 0) //key down
 		{
 			const char* name = realParms->Key.GetName();
-			if (strcmp(name, "F1") == 0)
+			if (strcmp(name, "F2") == 0)
+			{
+				//debug tests
+
+				Log::info("Server path: %s", Utilities::ServerPath());
+			}
+			else if (strcmp(name, "F1") == 0)
 			{
 				Log::info("InputKey soft hook called for key F1.");
 
@@ -246,9 +266,28 @@ namespace UHook
 			Log::error("Failed to find address for pProcessEvent.");
 			isHooked = false;
 		}
+		
+		if (isHooked && pCallFunction)
+		{
+			callFunctionHook = new Hook((void*)pCallFunction, (void*)*hookedCallFunction);
+			callFunctionHook->Patch();
+		}
+		else
+		{
+			Log::error("Failed to hook pCallFunction.");
+			isHooked = false;
+		}
 
-		GameHooks::Initialize();
-		GameHooks::EngineHookManager->Register("Function WillowGame.WillowGameInfo:InitGame", "StartupSDK", &GameReady);
+		if (isHooked)
+		{
+			GameHooks::Initialize();
+			GameHooks::EngineHookManager->Register("Function WillowGame.WillowGameInfo:InitGame", "StartupSDK", &GameReady);
+		}
+		else
+		{
+			Log::error("The process failed to load.");
+			isHooked = false;
+		}
 
 		return isHooked;
 	}
