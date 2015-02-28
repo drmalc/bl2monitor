@@ -63,6 +63,7 @@
             this.logTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.logTextBox.Size = new System.Drawing.Size(534, 259);
             this.logTextBox.TabIndex = 2;
+            this.logTextBox.TextChanged += new System.EventHandler(this.logTextBox_TextChanged);
             // 
             // Form1
             // 

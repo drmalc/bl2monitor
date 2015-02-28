@@ -24,6 +24,7 @@ namespace bl2_monitor
         private const String dll_dir = "\\data\\dll\\";
         private const String dll_name = "libbl2monitor.dll";
         private const String lua_dll = "lua51.dll";
+        private const String gwen_dll = "gwen.dll";
         private const String pipe_name = "\\\\.\\pipe\\bl2monitorpipe";
         private const String utils_pipe_name = "\\\\.\\pipe\\bl2monitorpipeutils";
         private const String log_file_name = @"C:\temp\bl2monitor.log"; //Not used by default. Feel free to change.
@@ -139,6 +140,10 @@ namespace bl2_monitor
                     {
                         PServerUtils.SendMessage(serverDirPath + Path.DirectorySeparatorChar + "data" + Path.DirectorySeparatorChar + "lua" + Path.DirectorySeparatorChar + "autorun.lua\n", PServerUtils.clientse);
                     }
+                    else if ("IMAGES" == str)
+                    {
+                        PServerUtils.SendMessage(serverDirPath + Path.DirectorySeparatorChar + "data" + Path.DirectorySeparatorChar + "images" + Path.DirectorySeparatorChar + "\n", PServerUtils.clientse);
+                    }
                     else
                     {
                         logTextBox.AppendText("Server received unknown request: " + str + Environment.NewLine);
@@ -214,6 +219,7 @@ namespace bl2_monitor
                         String dirPath = Directory.GetParent(procPath).FullName;
                         String dllPath = Directory.GetFiles(dirPath + dll_dir, dll_name)[0];
                         String luaPath = Directory.GetFiles(dirPath + dll_dir, lua_dll)[0];
+                        String gwenPath = Directory.GetFiles(dirPath + dll_dir, gwen_dll)[0];
 
                         serverPath = procPath;
                         serverDirPath = dirPath;
@@ -230,6 +236,15 @@ namespace bl2_monitor
                                 if (lpAddress != (IntPtr)0)
                                 {
                                     byte[] bytes = Encoding.ASCII.GetBytes(luaPath);
+                                    WriteProcessMemory(procPtr, lpAddress, bytes, (uint)bytes.Length, 0);
+                                    CreateRemoteThread(procPtr, (IntPtr)null, (IntPtr)0, loadPtr, lpAddress, 0, (IntPtr)null);
+                                }
+
+                                //gwen
+                                lpAddress = VirtualAllocEx(procPtr, (IntPtr)null, (IntPtr)gwenPath.Length, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+                                if (lpAddress != (IntPtr)0)
+                                {
+                                    byte[] bytes = Encoding.ASCII.GetBytes(gwenPath);
                                     WriteProcessMemory(procPtr, lpAddress, bytes, (uint)bytes.Length, 0);
                                     CreateRemoteThread(procPtr, (IntPtr)null, (IntPtr)0, loadPtr, lpAddress, 0, (IntPtr)null);
                                 }
@@ -255,6 +270,11 @@ namespace bl2_monitor
             timer_exec = false;
 
             statusTimer.Enabled = true;
+        }
+
+        private void logTextBox_TextChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

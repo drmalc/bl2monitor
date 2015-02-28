@@ -9,6 +9,8 @@
 #include "bl2Methods.h"
 #include "CLua.h"
 #include "Utilities.h"
+#include "DX9Hook.h"
+#include "CGwen.h"
 
 using namespace std;
 
@@ -82,6 +84,23 @@ namespace UHook
 		callFunctionHook->Patch();
 	}
 
+	//DX9Hook is informing us that the device is available
+	void d3d9DeviceAvailable()
+	{
+		//Time to init GWEN.
+
+		if (!CGwen::Initialize(DX9Hook::Device()))
+		{
+			Log::error("Failed to initialize GWEN.");
+		}
+	}
+
+	//This is where we draw our dx stuff.
+	void renderScene()
+	{
+		CGwen::Render();
+	}
+
 	// --- Soft hooks
 	// This function is used to ensure that everything gets called in the game thread once the game itself has loaded
 	bool GameReady(UObject* caller, UFunction* function, void* parms, void* result)
@@ -93,6 +112,10 @@ namespace UHook
 
 		GameHooks::EngineHookManager->RemoveStaticHook(function, "StartupSDK");
 		GameHooks::EngineHookManager->Register("Function WillowGame.WillowGameViewportClient:PostRender", "GetCanvas", &GetCanvasPostRender);
+		if (!DX9Hook::Initialize())
+		{
+			Log::error("Failed to hook d3d9.");
+		}
 		return true;
 	}
 
@@ -288,6 +311,9 @@ namespace UHook
 			Log::error("The process failed to load.");
 			isHooked = false;
 		}
+
+		DX9Hook::SetDeviceAvailableCallback(&d3d9DeviceAvailable);
+		DX9Hook::SetEndSceneCallback(&renderScene);
 
 		return isHooked;
 	}

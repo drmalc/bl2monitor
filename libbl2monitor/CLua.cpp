@@ -21,6 +21,36 @@ namespace CLua
 		return 0;
 	}
 
+	static void getLuaDirPath(char *buffer)
+	{
+		const char *str = Utilities::MainLuaPath();
+
+		::strncpy_s(buffer, MAX_PATH, str, MAX_PATH);
+		unsigned l = strnlen_s(buffer, MAX_PATH);
+		char *c = buffer + l;
+		while (*c != '/' && *c != '\\'){
+			*c = 0;
+			c--;
+		}
+	}
+
+	static int luaPath(lua_State* L)
+	{
+		char buffer[MAX_PATH];
+		getLuaDirPath(buffer);
+		lua_pushstring(L, buffer);
+		return 1;
+	}
+
+	static int luaModPath(lua_State* L)
+	{
+		char buffer[MAX_PATH];
+		getLuaDirPath(buffer);
+		strncat_s(buffer, "mods", sizeof(buffer));
+		lua_pushstring(L, buffer);
+		return 1;
+	}
+
 	static int logServer(lua_State* L)
 	{
 		const char *str = luaL_checkstring(L, 1);
@@ -37,6 +67,8 @@ namespace CLua
 
 	static const luaL_Reg base_funcs[] = {
 		{ "ping", ping },
+		{ "luaPath", luaPath },
+		{ "luaModPath", luaModPath },
 		{ NULL, NULL }
 	};
 
@@ -59,16 +91,53 @@ namespace CLua
 		//Register local libraries
 		luaL_newlib(m_pState, log);
 
+		//gwen
+
+
 		const char	*mainLua = Utilities::MainLuaPath();
 		Log::info("Lua initialized (" LUA_VERSION "). Loading %s...", mainLua);
 		if (*mainLua)
 		{
-			int err = luaL_dofile(m_pState, mainLua);
-			Log::info("...autorun.lua loaded.");
+			int err = luaL_loadfile(m_pState, mainLua);
 			if (err)
 			{
-				Log::error("luaL_dofile: %s\n", lua_tostring(m_pState, -1));
+				Log::error("luaL_loadfile: %s\n", lua_tostring(m_pState, -1));
 			}
+			else
+			{
+				err = lua_pcall(m_pState, 0, LUA_MULTRET, 0); //run lua
+				if (err)
+				{
+					Log::error("lua_pcall: %s\n", lua_tostring(m_pState, -1));
+				}
+				else
+				{
+					lua_getglobal(m_pState, "initialize"); //get init function
+					err = lua_pcall(m_pState, 0, 0, 0); //run init function
+					if (err)
+					{
+						Log::error("Failed to load autorun: %s\n", lua_tostring(m_pState, -1));
+					}
+				}
+			}
+			Log::info("...autorun.lua loaded.");
 		}
+	}
+
+	void CleanUp()
+	{
+		if (!m_pState)
+			return;
+		int err;
+
+		lua_getglobal(m_pState, "cleanup"); //get cleanup function
+		err = lua_pcall(m_pState, 0, 0, 0); //run cleanup function
+		if (err)
+		{
+			Log::error("Failed to cleanup autorun: %s\n", lua_tostring(m_pState, -1));
+		}
+
+		lua_close(m_pState);
+		m_pState = NULL;
 	}
 }

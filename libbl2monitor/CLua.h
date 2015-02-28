@@ -5,5 +5,6 @@
 namespace CLua
 {
 	void Initialize();
+	void CleanUp();
 }
 

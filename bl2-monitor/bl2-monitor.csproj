@@ -80,13 +80,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>mkdir "$(TargetDir)\data"
-mkdir "$(TargetDir)\data\dll"
-mkdir "$(TargetDir)\data\log"
-mkdir "$(TargetDir)\data\lua"
-copy /Y "$(SolutionDir)\ext\lua51.dll" "$(TargetDir)\data\dll\lua51.dll"
-copy /Y "$(SolutionDir)\lua\*.lua" "$(TargetDir)\data\lua"
-</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
