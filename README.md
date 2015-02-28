@@ -7,11 +7,10 @@ Open with VS community 2013, compile (make sure the Release configuration is act
 
 bl2monitor (the server) will indicate that it is waiting for the target (borderlands2).
 Launch bl2 (standalone or steam version), the server will update its status.
-You can check that the server is working by pressing F1 in game, this will log a message in the server gui.
-That's it.. for now.
+
+You will see a GUI overlay. That's it.. for now.
 
 Notes:
-- removed dependency to detour
-- new launcher (no need to launch the game from the gui)
-- no d3d hook yet
+- gwen is implemented (C++ interface). No lua bindings yet.
 - lua is implemented, still needs a lot of work
+- compilation requires DX9 SDK
