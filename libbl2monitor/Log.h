@@ -21,7 +21,9 @@ private:
 			pipe = new NamedPipe(pipeName);
 		if (pipe->IsOpen())
 			return;
-		pipe->Open();
+		if (!pipe->Open()){
+			MessageBoxW(NULL, L"Failed to open pipe", L"", MB_OK);
+		}
 		pipe->Write("--- Session started ---\n", 24);
 	}
 

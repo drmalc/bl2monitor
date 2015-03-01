@@ -12,7 +12,8 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	{
 	case DLL_PROCESS_ATTACH:
 		//MessageBoxW(NULL, L"Load OK", L"", MB_OK);
-		CreateThread(0, 0x1000, &mainLoop, 0, 0, NULL);
+		//DisableThreadLibraryCalls(hModule);
+		CreateThread(0, 0, &mainLoop, 0, 0, NULL);
 	case DLL_THREAD_ATTACH:
 	case DLL_THREAD_DETACH:
 	case DLL_PROCESS_DETACH:

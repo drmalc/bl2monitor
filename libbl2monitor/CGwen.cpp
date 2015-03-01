@@ -4,13 +4,6 @@
 #include "Utilities.h"
 #include "DX9Hook.h"
 #pragma comment( lib, "gwen" )
-//#pragma comment( lib, "unittest" )
-#include "Gwen/Gwen.h"
-#include "Gwen/Skins/Simple.h"
-#include "Gwen/Skins/TexturedBase.h"
-#include "Gwen/UnitTest/UnitTest.h"
-#include "Gwen/Input/Windows.h"
-#include "Gwen/Renderers/DirectX9.h"
 
 #define CANVAS_W 300
 #define CANVAS_H 200
@@ -19,6 +12,11 @@ namespace CGwen
 {
 	static IDirect3DDevice9 *device = NULL;
 	static Gwen::Controls::Canvas* pCanvas = NULL;
+
+	Gwen::Controls::Canvas* baseCanvas()
+	{
+		return pCanvas;
+	}
 
 	bool Initialize(IDirect3DDevice9 *dev)
 	{
@@ -49,11 +47,11 @@ namespace CGwen
 		GwenInput.Initialize(pCanvas);
 
 		// Create our unittest control (which is a Window with controls in it)
-		using namespace Gwen;
+		/*using namespace Gwen;
 		Controls::Label*	myControl;
 		myControl = new Controls::Label(pCanvas);
 		myControl->SetText("Hello Gwen");
-		myControl->Dock(Pos::Bottom);
+		myControl->Dock(Pos::Bottom);*/
 
 		device = dev;
 		return true;

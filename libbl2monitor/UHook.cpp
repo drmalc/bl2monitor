@@ -87,11 +87,18 @@ namespace UHook
 	//DX9Hook is informing us that the device is available
 	void d3d9DeviceAvailable()
 	{
-		//Time to init GWEN.
+		//GWEN needs lua
+		CLua::Initialize();
 
+		//Time to init GWEN.
 		if (!CGwen::Initialize(DX9Hook::Device()))
 		{
 			Log::error("Failed to initialize GWEN.");
+		}
+		else
+		{
+			//Autorun needs GWEN
+			CLua::Autorun();
 		}
 	}
 
@@ -120,12 +127,9 @@ namespace UHook
 	}
 
 	// This function is used to get the dimensions of the game window for Gwen's renderer
-	// It will also initialize Lua and the command system, so the SDK is essentially fully operational at this point
 	bool GetCanvasPostRender(UObject* caller, UFunction* function, void* parms, void* result)
 	{
 		Log::info("GetCanvas soft hook called.");
-
-		CLua::Initialize();
 
 		GameHooks::EngineHookManager->RemoveStaticHook(function, "GetCanvas");
 		GameHooks::EngineHookManager->Register("Function WillowGame.WillowGameViewportClient:InputKey", "InputKey", &InputKey);

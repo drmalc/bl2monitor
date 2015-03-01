@@ -25,7 +25,7 @@ namespace bl2_monitor
         private const String dll_name = "libbl2monitor.dll";
         private const String lua_dll = "lua52.dll";
         private const String gwen_dll = "gwen.dll";
-        private const String luacpp_dll = "LuaCppInterface.dll";
+        private const String luacpp_dll = "LuaBind.dll";
         private const String pipe_name = "\\\\.\\pipe\\bl2monitorpipe";
         private const String utils_pipe_name = "\\\\.\\pipe\\bl2monitorpipeutils";
         private const String log_file_name = @"C:\temp\bl2monitor.log"; //Not used by default. Feel free to change.
@@ -190,9 +190,13 @@ namespace bl2_monitor
             if (lpAddress != (IntPtr)0)
             {
                 byte[] bytes = Encoding.ASCII.GetBytes(path);
-                WriteProcessMemory(procPtr, lpAddress, bytes, (uint)bytes.Length, 0);
-
-                return CreateRemoteThread(procPtr, (IntPtr)null, (IntPtr)0, loadPtr, lpAddress, 0, (IntPtr)null);
+                logTextBox.AppendText("Injecting dll: " + path + Environment.NewLine);
+                if (0 == WriteProcessMemory(procPtr, lpAddress, bytes, (uint)bytes.Length, 0))
+                {
+                    logTextBox.AppendText("ERROR WriteProcessMemory returned 0." + Environment.NewLine);
+                }
+                else
+                    return CreateRemoteThread(procPtr, (IntPtr)null, (IntPtr)0, loadPtr, lpAddress, 0, (IntPtr)null);
             }
             return (IntPtr)0;
         }
@@ -247,13 +251,22 @@ namespace bl2_monitor
                             if (loadPtr != (IntPtr)0)
                             {
                                 //lua
-                                load_dll(luaPath, procPtr, loadPtr);
+                                if ((IntPtr)0 == load_dll(luaPath, procPtr, loadPtr))
+                                {
+                                    logTextBox.AppendText("ERROR Failed to load LUA" + Environment.NewLine);
+                                }
 
-                                //LuaCppInterface
-                                load_dll(luacppPath, procPtr, loadPtr);
+                                //LuaBind
+                                if ((IntPtr)0 == load_dll(luacppPath, procPtr, loadPtr))
+                                {
+                                    logTextBox.AppendText("ERROR Failed to load LuaBind" + Environment.NewLine);
+                                }
 
                                 //gwen
-                                load_dll(gwenPath, procPtr, loadPtr);
+                                if ((IntPtr)0 == load_dll(gwenPath, procPtr, loadPtr))
+                                {
+                                    logTextBox.AppendText("ERROR Failed to load GWEN" + Environment.NewLine);
+                                }
 
                                 //main dll
                                 IntPtr remoteThread = load_dll(dllPath, procPtr, loadPtr);
@@ -261,6 +274,10 @@ namespace bl2_monitor
                                 {
                                     statusLabel.Text = "Ready.";
                                     targetReady = true;
+                                }
+                                else
+                                {
+                                    logTextBox.AppendText("ERROR Failed to load main dll" + Environment.NewLine);
                                 }
                             }
                             CloseHandle(procPtr);
@@ -271,11 +288,6 @@ namespace bl2_monitor
             timer_exec = false;
 
             statusTimer.Enabled = true;
-        }
-
-        private void logTextBox_TextChanged(object sender, EventArgs e)
-        {
-
         }
     }
 }

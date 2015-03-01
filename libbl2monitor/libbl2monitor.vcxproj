@@ -65,24 +65,26 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>MinSpace</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBBL2MONITOR_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(DXSDK_DIR)\include;$(ProjectDir);$(ProjectDir)/GameSDK;$(ProjectDir)/lua</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBBL2MONITOR_EXPORTS;lua_strlen=lua_rawlen;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)/ext/LuaBind;$(DXSDK_DIR)\include;$(ProjectDir);$(ProjectDir)/GameSDK;$(ProjectDir)/lua;$(SolutionDir)/ext/boost</AdditionalIncludeDirectories>
       <UndefinePreprocessorDefinitions>
       </UndefinePreprocessorDefinitions>
+      <AdditionalOptions>/GR</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>$(SolutionDir)\ext\gwen.lib;$(SolutionDir)\ext\lua52.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)\ext\gwen.lib;$(SolutionDir)\ext\lua52.lib;$(TargetDir)\LuaBind.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)/ext;$(DXSDK_DIR)/Lib/x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir "$(TargetDir)\data"
+      <Command>;rmdir "$(TargetDir)\data" /s /q
+mkdir "$(TargetDir)\data"
 mkdir "$(TargetDir)\data\dll"
 mkdir "$(TargetDir)\data\images"
 mkdir "$(TargetDir)\data\log"
@@ -130,6 +132,7 @@ copy /Y  "$(SolutionDir)\images\*.png" "$(SolutionDir)$(Configuration)\data\imag
     <ClInclude Include="GameSDK\WillowGame_structs.h" />
     <ClInclude Include="Hook.h" />
     <ClInclude Include="Log.h" />
+    <ClInclude Include="LuaGwen.h" />
     <ClInclude Include="lua\lauxlib.h" />
     <ClInclude Include="lua\lua.h" />
     <ClInclude Include="lua\lua.hpp" />
@@ -166,6 +169,7 @@ copy /Y  "$(SolutionDir)\images\*.png" "$(SolutionDir)$(Configuration)\data\imag
     <ClCompile Include="Hook.cpp" />
     <ClCompile Include="libbl2monitor.cpp" />
     <ClCompile Include="Log.cpp" />
+    <ClCompile Include="LuaGwen.cpp" />
     <ClCompile Include="NamedPipe.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

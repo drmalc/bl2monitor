@@ -135,6 +135,9 @@
     <ClInclude Include="CGwen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LuaGwen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -195,6 +198,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\ext\DirectX9.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LuaGwen.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -11,7 +11,7 @@ using namespace std;
 
 DWORD WINAPI mainLoop(LPVOID lpParam)
 {
-	Log::setLogDebug(true); //Debug will produces a huge amount of log. True = we send everything and let the server decide what to log.
+	//Log::setLogDebug(true); //Debug will produces a huge amount of log. True = we send everything and let the server decide what to log.
 	Log::info("Library successfully loaded into target.");
 	UHook::hook(); //Initialization.
 	Utilities::Initialize();

@@ -5,6 +5,8 @@
 #include "lua.hpp"
 #include "Utilities.h"
 #include "bl2Methods.h"
+#include "luabind/luabind.hpp"
+#include "LuaGwen.h"
 
 namespace CLua
 {
@@ -16,6 +18,22 @@ namespace CLua
 		Log::lua("Hello World");
 		return 0;
 	}
+
+	//Simple test class for lua scripts
+	class TestClass
+	{
+	private:
+		int myInt;
+	public:
+		TestClass(int i){ myInt = i; }
+		~TestClass(){
+			Log::info("TestClass: Destroying object.");
+		}
+		int PrintSomething(){
+			Log::info("TestClass: PrintSomething called with myInt=%d", myInt);
+			return myInt;
+		}
+	};
 
 	static void getLuaDirPath(char *buffer)
 	{
@@ -47,6 +65,13 @@ namespace CLua
 		return 1;
 	}
 
+	static int luaDestroy(lua_State* L)
+	{
+		const void *v = lua_topointer(L, 1);
+		delete v;
+		return 0;
+	}
+
 	static int logServer(lua_State* L)
 	{
 		const char *str = luaL_checkstring(L, 1);
@@ -66,6 +91,7 @@ namespace CLua
 		{ "ping", ping },
 		{ "luaPath", luaPath },
 		{ "luaModPath", luaModPath },
+		{ "luaDestroy", luaDestroy },
 		{ NULL, NULL }
 	};
 
@@ -75,6 +101,20 @@ namespace CLua
 		{ "console", logConsole },
 		{ NULL, NULL }
 	};
+
+	static void InitLuaBinding()
+	{
+		luabind::open(m_pState);
+
+		luabind::module(m_pState)
+			[
+				luabind::class_<TestClass>("TestClass")
+				.def(luabind::constructor<int>())
+				.def("PrintSomething", &TestClass::PrintSomething)
+			];
+
+		LuaGwen::Initialize(m_pState);
+	}
 
 	void Initialize()
 	{
@@ -97,6 +137,13 @@ namespace CLua
 		//reset the stack (not required)
 		lua_settop(m_pState, 0);
 
+		Log::info("Setting up LuaBind...");
+		InitLuaBinding();
+		Log::info("...LuaBind loaded.");
+	}
+
+	void Autorun()
+	{
 		const char	*mainLua = Utilities::MainLuaPath();
 		Log::info("Lua initialized (" LUA_VERSION "). Loading %s...", mainLua);
 		if (*mainLua)
