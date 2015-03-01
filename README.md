@@ -11,6 +11,6 @@ Launch bl2 (standalone or steam version), the server will update its status.
 You will see a GUI overlay. That's it.. for now.
 
 Notes:
-- gwen is implemented (C++ interface). No lua bindings yet.
+- gwen is implemented. Basic Lua binding.
 - lua is implemented, still needs a lot of work
 - compilation requires DX9 SDK
