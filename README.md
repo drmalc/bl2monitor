@@ -1,6 +1,9 @@
 Based on:
 https://github.com/McSimp/Borderlands2SDK
 
+Binary snapshots:
+https://mega.co.nz/#F!eEFmBL7L!3ahyYI8ImXZlC0wyNNRfLA
+
 Early alpha stage.
 
 Open with VS community 2013, compile (make sure the Release configuration is active), run.
