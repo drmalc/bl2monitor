@@ -9,11 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "bl2-monitor", "bl2-monitor\
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libbl2monitor", "libbl2monitor\libbl2monitor.vcxproj", "{079B17DC-9923-4869-B024-9624EC1CC916}"
-	ProjectSection(ProjectDependencies) = postProject
-		{EF05938C-A471-4DF0-923B-20A1C58E37F8} = {EF05938C-A471-4DF0-923B-20A1C58E37F8}
-	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LuaBind", "LuaBind\LuaBind.vcxproj", "{EF05938C-A471-4DF0-923B-20A1C58E37F8}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "miniloader", "miniloader\miniloader.vcxproj", "{39C6AA90-3294-48AD-98C3-1C27FEFD4672}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,18 +48,18 @@ Global
 		{079B17DC-9923-4869-B024-9624EC1CC916}.Release|Win32.ActiveCfg = Release|Win32
 		{079B17DC-9923-4869-B024-9624EC1CC916}.Release|Win32.Build.0 = Release|Win32
 		{079B17DC-9923-4869-B024-9624EC1CC916}.Release|x64.ActiveCfg = Release|Win32
-		{EF05938C-A471-4DF0-923B-20A1C58E37F8}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{EF05938C-A471-4DF0-923B-20A1C58E37F8}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
-		{EF05938C-A471-4DF0-923B-20A1C58E37F8}.Debug|Mixed Platforms.Build.0 = Debug|Win32
-		{EF05938C-A471-4DF0-923B-20A1C58E37F8}.Debug|Win32.ActiveCfg = Debug|Win32
-		{EF05938C-A471-4DF0-923B-20A1C58E37F8}.Debug|Win32.Build.0 = Debug|Win32
-		{EF05938C-A471-4DF0-923B-20A1C58E37F8}.Debug|x64.ActiveCfg = Debug|Win32
-		{EF05938C-A471-4DF0-923B-20A1C58E37F8}.Release|Any CPU.ActiveCfg = Release|Win32
-		{EF05938C-A471-4DF0-923B-20A1C58E37F8}.Release|Mixed Platforms.ActiveCfg = Release|Win32
-		{EF05938C-A471-4DF0-923B-20A1C58E37F8}.Release|Mixed Platforms.Build.0 = Release|Win32
-		{EF05938C-A471-4DF0-923B-20A1C58E37F8}.Release|Win32.ActiveCfg = Release|Win32
-		{EF05938C-A471-4DF0-923B-20A1C58E37F8}.Release|Win32.Build.0 = Release|Win32
-		{EF05938C-A471-4DF0-923B-20A1C58E37F8}.Release|x64.ActiveCfg = Release|Win32
+		{39C6AA90-3294-48AD-98C3-1C27FEFD4672}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{39C6AA90-3294-48AD-98C3-1C27FEFD4672}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{39C6AA90-3294-48AD-98C3-1C27FEFD4672}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{39C6AA90-3294-48AD-98C3-1C27FEFD4672}.Debug|Win32.ActiveCfg = Debug|Win32
+		{39C6AA90-3294-48AD-98C3-1C27FEFD4672}.Debug|Win32.Build.0 = Debug|Win32
+		{39C6AA90-3294-48AD-98C3-1C27FEFD4672}.Debug|x64.ActiveCfg = Debug|Win32
+		{39C6AA90-3294-48AD-98C3-1C27FEFD4672}.Release|Any CPU.ActiveCfg = Release|Win32
+		{39C6AA90-3294-48AD-98C3-1C27FEFD4672}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{39C6AA90-3294-48AD-98C3-1C27FEFD4672}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{39C6AA90-3294-48AD-98C3-1C27FEFD4672}.Release|Win32.ActiveCfg = Release|Win32
+		{39C6AA90-3294-48AD-98C3-1C27FEFD4672}.Release|Win32.Build.0 = Release|Win32
+		{39C6AA90-3294-48AD-98C3-1C27FEFD4672}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -68,8 +68,8 @@
       <Optimization>MinSpace</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBBL2MONITOR_EXPORTS;lua_strlen=lua_rawlen;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)/ext/LuaBind;$(DXSDK_DIR)\include;$(ProjectDir);$(ProjectDir)/GameSDK;$(ProjectDir)/lua;$(SolutionDir)/ext/boost</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBBL2MONITOR_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)\include;$(ProjectDir);$(ProjectDir)/GameSDK;$(SolutionDir)/ext/lua;$(SolutionDir)/ext</AdditionalIncludeDirectories>
       <UndefinePreprocessorDefinitions>
       </UndefinePreprocessorDefinitions>
       <AdditionalOptions>/GR</AdditionalOptions>
@@ -79,15 +79,14 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>$(SolutionDir)\ext\gwen.lib;$(SolutionDir)\ext\lua52.lib;$(TargetDir)\LuaBind.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)/ext;$(DXSDK_DIR)/Lib/x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(SolutionDir)\ext\lua.lib;$(SolutionDir)\ext\CEGUIBase-0.lib;$(SolutionDir)\ext\CEGUICoreWindowRendererSet.lib;$(SolutionDir)\ext\glfw.lib;$(SolutionDir)\ext\freetype.lib;$(SolutionDir)\ext\CEGUIDirect3D9Renderer-0.lib;dxerr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)/ext;$(DXSDK_DIR)/Lib/x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>;rmdir "$(TargetDir)\data" /s /q
-mkdir "$(TargetDir)\data"
+      <Command>mkdir "$(TargetDir)\data"
 mkdir "$(TargetDir)\data\dll"
-mkdir "$(TargetDir)\data\images"
 mkdir "$(TargetDir)\data\log"
+mkdir "$(TargetDir)\data\layout"
 mkdir "$(TargetDir)\data\lua"
 mkdir "$(TargetDir)\data\lua\mods"
 mkdir "$(TargetDir)\data\lua\base"
@@ -98,13 +97,17 @@ copy /Y "$(SolutionDir)\lua\base\*.lua" "$(TargetDir)\data\lua\base"
 copy /Y "$(SolutionDir)\lua\mods\" "$(TargetDir)\data\lua\"
 copy /Y "$(SolutionDir)\lua\samples\*.lua" "$(TargetDir)\data\lua\samples"
 copy /Y  "$(SolutionDir)$(Configuration)\*.dll" "$(SolutionDir)$(Configuration)\data\dll\"
-copy /Y  "$(SolutionDir)\images\*.png" "$(SolutionDir)$(Configuration)\data\images"
+xcopy "$(SolutionDir)\ext\layout" "$(TargetDir)\data\layout" /E /Y
 </Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="bl2Methods.h" />
-    <ClInclude Include="CGwen.h" />
+    <ClInclude Include="CEGUIManager.h" />
     <ClInclude Include="CHookManager.h" />
     <ClInclude Include="CLua.h" />
     <ClInclude Include="CSigScan.h" />
@@ -146,9 +149,8 @@ copy /Y  "$(SolutionDir)\images\*.png" "$(SolutionDir)$(Configuration)\data\imag
     <ClInclude Include="Utilities.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\ext\DirectX9.cpp" />
     <ClCompile Include="bl2Methods.cpp" />
-    <ClCompile Include="CGwen.cpp" />
+    <ClCompile Include="CEGUIManager.cpp" />
     <ClCompile Include="CHookManager.cpp" />
     <ClCompile Include="CLua.cpp" />
     <ClCompile Include="CSigScan.cpp" />
@@ -169,7 +171,6 @@ copy /Y  "$(SolutionDir)\images\*.png" "$(SolutionDir)$(Configuration)\data\imag
     <ClCompile Include="Hook.cpp" />
     <ClCompile Include="libbl2monitor.cpp" />
     <ClCompile Include="Log.cpp" />
-    <ClCompile Include="LuaGwen.cpp" />
     <ClCompile Include="NamedPipe.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

@@ -10,7 +10,12 @@
 #include "CLua.h"
 #include "Utilities.h"
 #include "DX9Hook.h"
-#include "CGwen.h"
+#include "CEGUIManager.h"
+#include <Windows.h>
+#include <tchar.h>
+#include <winternl.h>
+#define STATUS_SUCCESS ((NTSTATUS)0x00000000L)
+#define STATUS_PORT_NOT_SET ((NTSTATUS)0xC0000353L)
 
 using namespace std;
 
@@ -48,6 +53,12 @@ namespace UHook
 	//Hard hooks
 	Hook	*processEventHook = NULL, *callFunctionHook = NULL;
 
+	Hook	*setInfoHook = NULL, *queryInfoHook = NULL;
+	typedef NTSTATUS(WINAPI* tNtSIT) (HANDLE, THREAD_INFORMATION_CLASS, PVOID, ULONG);
+	tNtSIT pNtSetInformationThread = nullptr;
+	typedef NTSTATUS(WINAPI* tNtQIP) (HANDLE, PROCESSINFOCLASS, PVOID, ULONG, PULONG);
+	tNtQIP pNtQueryInformationProcess = nullptr;
+
 	// --- Callbacks for hooked functions
 	void _stdcall hookedProcessEvent(UFunction* fct, void* Parms, void* result)
 	{
@@ -84,28 +95,66 @@ namespace UHook
 		callFunctionHook->Patch();
 	}
 
+	NTSTATUS NTAPI hkNtSetInformationThread(
+		__in HANDLE ThreadHandle,
+		__in THREAD_INFORMATION_CLASS ThreadInformationClass,
+		__in PVOID ThreadInformation,
+		__in ULONG ThreadInformationLength)
+	{
+		if (ThreadInformationClass == 17) // ThreadHideFromDebugger
+		{
+			Log::info("[AntiDebug] NtSetInformationThread called with ThreadHideFromDebugger");
+			return STATUS_SUCCESS;
+		}
+		setInfoHook->Unpatch();
+		NTSTATUS i = pNtSetInformationThread(ThreadHandle, ThreadInformationClass, ThreadInformation, ThreadInformationLength);
+		setInfoHook->Patch();
+		return i;
+	}
+
+	NTSTATUS WINAPI hkNtQueryInformationProcess(
+		__in HANDLE ProcessHandle,
+		__in PROCESSINFOCLASS ProcessInformationClass,
+		__out PVOID ProcessInformation,
+		__in ULONG ProcessInformationLength,
+		__out_opt PULONG ReturnLength)
+	{
+		if (ProcessInformationClass == 30) // ProcessDebugObjectHandle
+		{
+			return STATUS_PORT_NOT_SET;
+		}
+		queryInfoHook->Unpatch();
+		NTSTATUS i = pNtQueryInformationProcess(ProcessHandle, ProcessInformationClass, ProcessInformation, ProcessInformationLength, ReturnLength);
+		queryInfoHook->Patch();
+		return i;
+	}
+
+	void setupAntiAntiDebug()
+	{
+		Log::info("Setting up anti anti debugger");
+		HMODULE hNtdll = GetModuleHandle(L"ntdll.dll");
+
+		pNtSetInformationThread = (tNtSIT)GetProcAddress(hNtdll, "NtSetInformationThread");
+		setInfoHook = new Hook((void*)pNtSetInformationThread, (void*)*hkNtSetInformationThread);
+		setInfoHook->Patch();
+
+		pNtQueryInformationProcess = (tNtQIP)GetProcAddress(hNtdll, "NtQueryInformationProcess");
+		queryInfoHook = new Hook((void*)pNtQueryInformationProcess, (void*)*hkNtQueryInformationProcess);
+		queryInfoHook->Patch();
+	}
+
 	//DX9Hook is informing us that the device is available
 	void d3d9DeviceAvailable()
 	{
-		//GWEN needs lua
 		CLua::Initialize();
-
-		//Time to init GWEN.
-		if (!CGwen::Initialize(DX9Hook::Device()))
-		{
-			Log::error("Failed to initialize GWEN.");
-		}
-		else
-		{
-			//Autorun needs GWEN
-			CLua::Autorun();
-		}
+		CEGUIManager::Initialize(DX9Hook::Device());
+		CLua::Autorun();
 	}
 
 	//This is where we draw our dx stuff.
 	void renderScene()
 	{
-		CGwen::Render();
+		CEGUIManager::Render();
 	}
 
 	// --- Soft hooks
@@ -126,7 +175,7 @@ namespace UHook
 		return true;
 	}
 
-	// This function is used to get the dimensions of the game window for Gwen's renderer
+	// This function is used to get the dimensions of the game window
 	bool GetCanvasPostRender(UObject* caller, UFunction* function, void* parms, void* result)
 	{
 		Log::info("GetCanvas soft hook called.");
@@ -219,8 +268,26 @@ namespace UHook
 	{
 		if (isHooked)
 			return true;
-		Log::info("Attempting to find the addresses for the target...");
 
+		//------ CEGUI Debug -------------
+		TCHAR	exePath[MAX_PATH] = { 0 };
+		GetModuleFileName(NULL, exePath, MAX_PATH);
+		if (_tcsstr(exePath, _T("d3d9Test")))
+		{
+			//This is the test exe, not BL2.
+			Log::info("Test module detected.");
+
+			DX9Hook::SetDeviceAvailableCallback(&d3d9DeviceAvailable);
+			DX9Hook::SetEndSceneCallback(&renderScene);
+			if (!DX9Hook::Initialize())
+			{
+				Log::error("Failed to hook d3d9.");
+			}
+			isHooked = true;
+			return true;
+		}
+
+		Log::info("Attempting to find the addresses for the target...");
 		HMODULE		module = GetModuleHandle(NULL);
 		CSigScan	sigscan(module);
 
@@ -318,6 +385,8 @@ namespace UHook
 
 		DX9Hook::SetDeviceAvailableCallback(&d3d9DeviceAvailable);
 		DX9Hook::SetEndSceneCallback(&renderScene);
+
+		setupAntiAntiDebug();
 
 		return isHooked;
 	}

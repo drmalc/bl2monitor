@@ -132,10 +132,10 @@
     <ClInclude Include="DX9Hook.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CGwen.h">
+    <ClInclude Include="LuaGwen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LuaGwen.h">
+    <ClInclude Include="CEGUIManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -194,13 +194,7 @@
     <ClCompile Include="DX9Hook.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CGwen.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ext\DirectX9.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="LuaGwen.cpp">
+    <ClCompile Include="CEGUIManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

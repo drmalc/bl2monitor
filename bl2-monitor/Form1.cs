@@ -21,11 +21,9 @@ namespace bl2_monitor
     {
         //String constants
         private const String process_name = "Borderlands2";
+        private const String test_process_name = "d3d9Test";
         private const String dll_dir = "\\data\\dll\\";
-        private const String dll_name = "libbl2monitor.dll";
-        private const String lua_dll = "lua52.dll";
-        private const String gwen_dll = "gwen.dll";
-        private const String luacpp_dll = "LuaBind.dll";
+        private const String dll_name = "miniloader.dll";
         private const String pipe_name = "\\\\.\\pipe\\bl2monitorpipe";
         private const String utils_pipe_name = "\\\\.\\pipe\\bl2monitorpipeutils";
         private const String log_file_name = @"C:\temp\bl2monitor.log"; //Not used by default. Feel free to change.
@@ -143,7 +141,12 @@ namespace bl2_monitor
                     }
                     else if ("IMAGES" == str)
                     {
+                        //deprecated
                         PServerUtils.SendMessage(serverDirPath + Path.DirectorySeparatorChar + "data" + Path.DirectorySeparatorChar + "images" + Path.DirectorySeparatorChar + "\n", PServerUtils.clientse);
+                    }
+                    else if ("LAYOUT" == str)
+                    {
+                        PServerUtils.SendMessage(serverDirPath + Path.DirectorySeparatorChar + "data" + Path.DirectorySeparatorChar + "layout" + Path.DirectorySeparatorChar + "\n", PServerUtils.clientse);
                     }
                     else
                     {
@@ -224,10 +227,11 @@ namespace bl2_monitor
                     statusLabel.Text = "Waiting for target...";
 
                     Process[] processes = Process.GetProcessesByName(process_name);
-                    if (processes.Length == 1)
+                    Process[] test_processes = Process.GetProcessesByName(test_process_name);
+                    if (processes.Length == 1 || test_processes.Length == 1)
                     {
                         statusLabel.Text = "Target found.";
-                        Process process = processes.FirstOrDefault();
+                        Process process = processes.Length == 1 ? processes.FirstOrDefault() : test_processes.FirstOrDefault();
                         processId = process.Id;
 
                         Thread.Sleep(100); //Just for safety. Not needed.
@@ -235,10 +239,7 @@ namespace bl2_monitor
                         Process currentProc = Process.GetCurrentProcess();
                         String procPath = currentProc.MainModule.FileName;
                         String dirPath = Directory.GetParent(procPath).FullName;
-                        String dllPath = Directory.GetFiles(dirPath + dll_dir, dll_name)[0];
-                        String luaPath = Directory.GetFiles(dirPath + dll_dir, lua_dll)[0];
-                        String gwenPath = Directory.GetFiles(dirPath + dll_dir, gwen_dll)[0];
-                        String luacppPath = Directory.GetFiles(dirPath + dll_dir, luacpp_dll)[0];
+                        String miniDll = Directory.GetFiles(dirPath + dll_dir, dll_name)[0];
 
                         serverPath = procPath;
                         serverDirPath = dirPath;
@@ -247,29 +248,11 @@ namespace bl2_monitor
 
                         if (procPtr != (IntPtr)0)
                         {
+                            //load ext dll
                             IntPtr loadPtr = GetProcAddress(GetModuleHandle("kernel32.dll"), "LoadLibraryA");
                             if (loadPtr != (IntPtr)0)
                             {
-                                //lua
-                                if ((IntPtr)0 == load_dll(luaPath, procPtr, loadPtr))
-                                {
-                                    logTextBox.AppendText("ERROR Failed to load LUA" + Environment.NewLine);
-                                }
-
-                                //LuaBind
-                                if ((IntPtr)0 == load_dll(luacppPath, procPtr, loadPtr))
-                                {
-                                    logTextBox.AppendText("ERROR Failed to load LuaBind" + Environment.NewLine);
-                                }
-
-                                //gwen
-                                if ((IntPtr)0 == load_dll(gwenPath, procPtr, loadPtr))
-                                {
-                                    logTextBox.AppendText("ERROR Failed to load GWEN" + Environment.NewLine);
-                                }
-
-                                //main dll
-                                IntPtr remoteThread = load_dll(dllPath, procPtr, loadPtr);
+                                IntPtr remoteThread = load_dll(miniDll, procPtr, loadPtr);
                                 if (remoteThread != (IntPtr)0)
                                 {
                                     statusLabel.Text = "Ready.";
@@ -277,7 +260,7 @@ namespace bl2_monitor
                                 }
                                 else
                                 {
-                                    logTextBox.AppendText("ERROR Failed to load main dll" + Environment.NewLine);
+                                    logTextBox.AppendText("ERROR Failed to load dll: " + miniDll + Environment.NewLine);
                                 }
                             }
                             CloseHandle(procPtr);

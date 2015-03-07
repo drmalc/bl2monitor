@@ -1,12 +1,13 @@
 #include "stdafx.h"
 #include "CLua.h"
 #include "Log.h"
-#pragma comment( lib, "lua52" )
 #include "lua.hpp"
 #include "Utilities.h"
 #include "bl2Methods.h"
-#include "luabind/luabind.hpp"
-#include "LuaGwen.h"
+
+#if LUA_VERSION_NUM > 501
+#define lua_strlen lua_rawlen
+#endif
 
 namespace CLua
 {
@@ -102,20 +103,6 @@ namespace CLua
 		{ NULL, NULL }
 	};
 
-	static void InitLuaBinding()
-	{
-		luabind::open(m_pState);
-
-		luabind::module(m_pState)
-			[
-				luabind::class_<TestClass>("TestClass")
-				.def(luabind::constructor<int>())
-				.def("PrintSomething", &TestClass::PrintSomething)
-			];
-
-		LuaGwen::Initialize(m_pState);
-	}
-
 	void Initialize()
 	{
 		if (m_pState)
@@ -125,21 +112,27 @@ namespace CLua
 		luaL_openlibs(m_pState); //Opens all standard Lua libraries into the given state.
 
 		//register global functions
+#if LUA_VERSION_NUM > 501
 		lua_getglobal(m_pState, "_G");
 		luaL_setfuncs(m_pState, base_funcs, 0);
+#else
+		lua_pushvalue(m_pState, LUA_GLOBALSINDEX);
+		luaL_register(m_pState, NULL, base_funcs);
+#endif
 
 		//Register local libraries
+#if LUA_VERSION_NUM > 501
 		lua_newtable(m_pState);
 		luaL_setfuncs(m_pState, log, 0);
 		lua_pushvalue(m_pState, -1);
 		lua_setglobal(m_pState, "log");
+#else
+		lua_pushvalue(m_pState, LUA_GLOBALSINDEX);
+		luaL_register(m_pState, "log", log);
+#endif
 
 		//reset the stack (not required)
 		lua_settop(m_pState, 0);
-
-		Log::info("Setting up LuaBind...");
-		InitLuaBinding();
-		Log::info("...LuaBind loaded.");
 	}
 
 	void Autorun()

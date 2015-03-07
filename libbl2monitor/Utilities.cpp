@@ -11,7 +11,8 @@ namespace Utilities
 	static const char pipeName[] = "\\\\.\\pipe\\bl2monitorpipeutils";
 	static char serverPath[MAX_PATH] = { 0 };
 	static char mainLuaPath[MAX_PATH] = { 0 };
-	static char imagesPath[MAX_PATH] = { 0 };
+	static char imagesPath[MAX_PATH] = { 0 }; //deprecated
+	static char layoutPath[MAX_PATH] = { 0 };
 
 	void SendRequest(const char*req, unsigned len, char* buffer, unsigned *buflen)
 	{//Clean me up
@@ -97,5 +98,15 @@ namespace Utilities
 		unsigned l = sizeof(imagesPath);
 		SendRequest(req, sizeof(req) - 1, imagesPath, &l);
 		return imagesPath;
+	}
+
+	const char *LayoutPath()
+	{
+		const char req[] = "LAYOUT\n";
+		if (*layoutPath)
+			return layoutPath;
+		unsigned l = sizeof(layoutPath);
+		SendRequest(req, sizeof(req) - 1, layoutPath, &l);
+		return layoutPath;
 	}
 }
