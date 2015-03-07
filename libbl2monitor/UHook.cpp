@@ -32,7 +32,7 @@ namespace UHook
 	typedef FArchive& (__thiscall *tByteOrderSerialize) (FArchive* Ar, void* V, int Length);
 
 	//Internal functions prototypes
-	bool GetCanvasPostRender(UObject* caller, UFunction* function, void* parms, void* result);
+	//bool GetCanvasPostRender(UObject* caller, UFunction* function, void* parms, void* result);
 	bool InputKey(UObject* caller, UFunction* function, void* parms, void* result);
 
 	//Scanned memory addresses
@@ -168,21 +168,15 @@ namespace UHook
 		bl2Methods::logToConsole(NULL);
 
 		GameHooks::EngineHookManager->RemoveStaticHook(function, "StartupSDK");
-		GameHooks::EngineHookManager->Register("Function WillowGame.WillowGameViewportClient:PostRender", "GetCanvas", &GetCanvasPostRender);
+		//GameHooks::EngineHookManager->Register("Function WillowGame.WillowGameViewportClient:PostRender", "GetCanvas", &GetCanvasPostRender);
 		if (!DX9Hook::Initialize())
 		{
 			Log::error("Failed to hook d3d9.");
 		}
-		return true;
-	}
-
-	// This function is used to get the dimensions of the game window
-	bool GetCanvasPostRender(UObject* caller, UFunction* function, void* parms, void* result)
-	{
-		Log::info("GetCanvas soft hook called.");
-
-		GameHooks::EngineHookManager->RemoveStaticHook(function, "GetCanvas");
-		GameHooks::EngineHookManager->Register("Function WillowGame.WillowGameViewportClient:InputKey", "InputKey", &InputKey);
+		else
+		{
+			GameHooks::EngineHookManager->Register("Function WillowGame.WillowGameViewportClient:InputKey", "InputKey", &InputKey);
+		}
 		return true;
 	}
 
@@ -388,7 +382,7 @@ namespace UHook
 		DX9Hook::SetDeviceAvailableCallback(&d3d9DeviceAvailable);
 		DX9Hook::SetEndSceneCallback(&renderScene);
 
-		setupAntiAntiDebug();
+		//setupAntiAntiDebug();
 
 		return isHooked;
 	}

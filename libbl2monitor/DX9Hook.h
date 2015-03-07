@@ -1,4 +1,6 @@
 #pragma once
+#include <vector>
+
 struct IDirect3DDevice9;
 namespace DX9Hook
 {
@@ -11,4 +13,5 @@ namespace DX9Hook
 	long CanvasWidth();
 	long CanvasHeight();
 	IDirect3DDevice9 *Device();
+	std::vector<HWND> getToplevelWindows();
 }

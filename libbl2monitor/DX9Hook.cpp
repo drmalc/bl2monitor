@@ -44,7 +44,7 @@ namespace DX9Hook
 		return TRUE;
 	}
 
-	static std::vector<HWND> getToplevelWindows()
+	std::vector<HWND> getToplevelWindows()
 	{
 		EnumWindowsCallbackArgs args(::GetCurrentProcessId());
 		if (::EnumWindows(&EnumWindowsCallback, (LPARAM)&args) == FALSE) {

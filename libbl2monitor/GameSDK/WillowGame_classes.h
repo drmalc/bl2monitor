@@ -3933,14 +3933,14 @@
 };*/
 
 // Enum WillowGame.WillowPlayerInput.EButtonState
-/*enum EButtonState
+enum EButtonState
 {
 	BUTTON_STATE_Pressed                               = 0,
 	BUTTON_STATE_Held                                  = 1,
 	BUTTON_STATE_Released                              = 2,
 	BUTTON_STATE_Cleared                               = 3,
 	BUTTON_STATE_MAX                                   = 4
-};*/
+};
 
 // Enum WillowGame.WillowPlayerPawn.ERegionList
 /*enum ERegionList

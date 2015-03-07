@@ -6,6 +6,9 @@
 #include "CEGUI\ScriptModules\Lua\ScriptModule.h"
 #include "Log.h"
 #include "Utilities.h"
+#include "GameHooks.h"
+#include "WillowGame_classes.h"
+#include "UEventsConst.h"
 
 #pragma comment(lib, "CEGUIBase-0.lib")
 #pragma comment(lib, "CEGUIExpatParser.lib")
@@ -22,6 +25,51 @@ namespace CEGUIManager
 	static FrameWindow *mainFrameWindow = NULL;
 	static ImageCodec* d_imageCodec = NULL;
 	static ResourceProvider* d_resourceProvider = NULL;
+
+	static bool InputKey(UObject* caller, UFunction* function, void* parms, void* result)
+	{
+		UWillowGameViewportClient_execInputKey_Parms* realParms = reinterpret_cast<UWillowGameViewportClient_execInputKey_Parms*>(parms);
+
+		if (realParms->EventType == (int)BUTTON_STATE_Pressed)
+		{
+			const char* name = realParms->Key.GetName();
+			//Log::info("InputKey %d: %s", realParms->EventType, name);
+
+			if (!strstr(name, KEYEVENT_MOUSELEFT))
+			{
+				CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonDown(CEGUI::LeftButton);
+			}
+			else if (!strstr(name, KEYEVENT_MOUSERIGHT))
+			{
+				CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonDown(CEGUI::RightButton);
+			}
+		}
+		else if (realParms->EventType == (int)BUTTON_STATE_Released)
+		{
+			const char* name = realParms->Key.GetName();
+
+			if (!strstr(name, KEYEVENT_MOUSELEFT))
+			{
+				CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonUp(CEGUI::LeftButton);
+			}
+			else if (!strstr(name, KEYEVENT_MOUSERIGHT))
+			{
+				CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonUp(CEGUI::RightButton);
+			}
+		}
+		/*
+		if (bButtonDown)
+		{
+			CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyDown((CEGUI::Key::Scan)inKey.key);
+			CEGUI::System::getSingleton().getDefaultGUIContext().injectChar(inKey.text);
+		}
+		else
+		{
+			CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyUp((CEGUI::Key::Scan)inKey.key);
+		}
+		*/
+		return true;
+	}
 
 	bool Initialize(IDirect3DDevice9 *dev, lua_State* luaState)
 	{
@@ -105,14 +153,8 @@ namespace CEGUIManager
 		rootWindow = wmgr.createWindow("DefaultWindow", "root");
 		System::getSingleton().getDefaultGUIContext().setRootWindow(rootWindow);
 
-		//Create GUI
-		/*mainFrameWindow = static_cast<FrameWindow*>(wmgr.createWindow("TaharezLook/FrameWindow", "myWindow"));
-		rootWindow->addChild(mainFrameWindow);
-		// position a quarter of the way in from the top-left of parent.
-		mainFrameWindow->setPosition(UVector2(UDim(0.25f, 0.0f), UDim(0.25f, 0.0f)));
-		// set size to be half the size of the parent
-		mainFrameWindow->setSize(USize(UDim(0.5f, 0.0f), UDim(0.5f, 0.0f)));
-		mainFrameWindow->setText("Hello CEGUI!");*/
+		//Setup IOs
+		GameHooks::EngineHookManager->Register("Function WillowGame.WillowGameViewportClient:InputKey", "CEGUIInputKey", &InputKey);
 
 		Log::info("...CEGUI init done.");
 		device = dev;
