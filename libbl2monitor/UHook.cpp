@@ -148,7 +148,6 @@ namespace UHook
 	{
 		CLua::Initialize();
 		CEGUIManager::Initialize(DX9Hook::Device(), CLua::getLuaState());
-		CLua::SetupFunctions();
 		CEGUIManager::RunLua("autorun.lua");
 	}
 

@@ -5,6 +5,7 @@ VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "bl2-monitor", "bl2-monitor\bl2-monitor.csproj", "{B6F8FA04-6267-4635-AA2F-F9B7BF5C2FFB}"
 	ProjectSection(ProjectDependencies) = postProject
+		{39C6AA90-3294-48AD-98C3-1C27FEFD4672} = {39C6AA90-3294-48AD-98C3-1C27FEFD4672}
 		{079B17DC-9923-4869-B024-9624EC1CC916} = {079B17DC-9923-4869-B024-9624EC1CC916}
 	EndProjectSection
 EndProject

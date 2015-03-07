@@ -2,7 +2,7 @@
 #include "Utilities.h"
 #include "NamedPipe.h"
 #include "Log.h"
-
+#include <vector>
 
 namespace Utilities
 {
@@ -108,5 +108,35 @@ namespace Utilities
 		unsigned l = sizeof(layoutPath);
 		SendRequest(req, sizeof(req) - 1, layoutPath, &l);
 		return layoutPath;
+	}
+
+	//Get top window
+	static HWND	topWnd = NULL;
+	struct EnumWindowsCallbackArgs {
+		EnumWindowsCallbackArgs(DWORD p) : pid(p) { }
+		const DWORD pid;
+		std::vector<HWND> handles;
+	};
+
+	static BOOL CALLBACK EnumWindowsCallback(HWND hnd, LPARAM lParam)
+	{
+		EnumWindowsCallbackArgs *args = (EnumWindowsCallbackArgs *)lParam;
+		DWORD windowPID;
+		(void)::GetWindowThreadProcessId(hnd, &windowPID);
+		if (windowPID == args->pid) {
+			args->handles.push_back(hnd);
+		}
+		return TRUE;
+	}
+
+	HWND getToplevelWindows()
+	{
+		if (topWnd)
+			return topWnd;
+		EnumWindowsCallbackArgs args(::GetCurrentProcessId());
+		if (::EnumWindows(&EnumWindowsCallback, (LPARAM)&args) == FALSE) {
+			return NULL;
+		}
+		return topWnd = args.handles[0];
 	}
 }

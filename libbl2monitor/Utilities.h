@@ -9,4 +9,5 @@ namespace Utilities
 	const char *MainLuaPath();
 	const char *ImagesPath();
 	const char *LayoutPath();
+	HWND getToplevelWindows();
 }

@@ -28,6 +28,9 @@ namespace CEGUIManager
 
 	static bool InputKey(UObject* caller, UFunction* function, void* parms, void* result)
 	{
+		if (!rootWindow->isVisible())
+			return true;
+
 		UWillowGameViewportClient_execInputKey_Parms* realParms = reinterpret_cast<UWillowGameViewportClient_execInputKey_Parms*>(parms);
 
 		if (realParms->EventType == (int)BUTTON_STATE_Pressed)
@@ -35,26 +38,34 @@ namespace CEGUIManager
 			const char* name = realParms->Key.GetName();
 			//Log::info("InputKey %d: %s", realParms->EventType, name);
 
-			if (!strstr(name, KEYEVENT_MOUSELEFT))
+			if (!strcmp(name, KEYEVENT_MOUSELEFT))
 			{
-				CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonDown(CEGUI::LeftButton);
+				bool b = !CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonDown(CEGUI::LeftButton);
+				//Log::info("MouseDown %d", (int)b);
+				//always returns false.. why ?
+				return b;
 			}
-			else if (!strstr(name, KEYEVENT_MOUSERIGHT))
+			else if (!strcmp(name, KEYEVENT_MOUSERIGHT))
 			{
-				CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonDown(CEGUI::RightButton);
+				return !CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonDown(CEGUI::RightButton);
+			}
+			else if (name[1] == 0)
+			{
+				//ASCII char
+				return !CEGUI::System::getSingleton().getDefaultGUIContext().injectChar(*name);
 			}
 		}
 		else if (realParms->EventType == (int)BUTTON_STATE_Released)
 		{
 			const char* name = realParms->Key.GetName();
 
-			if (!strstr(name, KEYEVENT_MOUSELEFT))
+			if (!strcmp(name, KEYEVENT_MOUSELEFT))
 			{
-				CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonUp(CEGUI::LeftButton);
+				return !CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonUp(CEGUI::LeftButton);
 			}
-			else if (!strstr(name, KEYEVENT_MOUSERIGHT))
+			else if (!strcmp(name, KEYEVENT_MOUSERIGHT))
 			{
-				CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonUp(CEGUI::RightButton);
+				return !CEGUI::System::getSingleton().getDefaultGUIContext().injectMouseButtonUp(CEGUI::RightButton);
 			}
 		}
 		/*
@@ -68,6 +79,22 @@ namespace CEGUIManager
 			CEGUI::System::getSingleton().getDefaultGUIContext().injectKeyUp((CEGUI::Key::Scan)inKey.key);
 		}
 		*/
+		return true;
+	}
+
+	static bool InputAxis(UObject* caller, UFunction* function, void* parms, void* result)
+	{
+		if (!rootWindow->isVisible())
+			return true;
+
+		POINT p;
+		if (::GetCursorPos(&p))
+		{
+			if (::ScreenToClient(Utilities::getToplevelWindows(), &p))
+			{
+				CEGUI::System::getSingleton().getDefaultGUIContext().injectMousePosition((float)p.x, (float)p.y);
+			}
+		}
 		return true;
 	}
 
@@ -97,13 +124,13 @@ namespace CEGUIManager
 		Direct3D9Renderer &myRenderernderer = CEGUI::Direct3D9Renderer::create(dev);
 
 		//Create lua module
-		LuaScriptModule& script_module = LuaScriptModule::create();
+		LuaScriptModule& script_module = LuaScriptModule::create(luaState);
 
 		//Init system
 		System::create(myRenderernderer, d_resourceProvider, 0, d_imageCodec, &script_module);
 
 		//Log file
-		Logger::getSingleton().setLoggingLevel(CEGUI::Informative);
+		Logger::getSingleton().setLoggingLevel(CEGUI::Warnings);
 		sprintf_s(buffer, "%s/../log/cegui.log", basePath);
 		CEGUI::Logger::getSingleton().setLogFilename(buffer);
 
@@ -145,6 +172,7 @@ namespace CEGUIManager
 		//Setup some defaults
 		System::getSingleton().getDefaultGUIContext().getMouseCursor().setDefaultImage("TaharezLook/MouseArrow");
 		System::getSingleton().getDefaultGUIContext().setDefaultTooltipType("TaharezLook/Tooltip");
+		System::getSingleton().getDefaultGUIContext().getMouseCursor().hide();
 
 		script_module.createBindings();
 
@@ -155,6 +183,7 @@ namespace CEGUIManager
 
 		//Setup IOs
 		GameHooks::EngineHookManager->Register("Function WillowGame.WillowGameViewportClient:InputKey", "CEGUIInputKey", &InputKey);
+		GameHooks::EngineHookManager->Register("Function WillowGame.WillowGameViewportClient:InputAxis", "CEGUIInputAxis", &InputAxis);
 
 		Log::info("...CEGUI init done.");
 		device = dev;
@@ -164,6 +193,8 @@ namespace CEGUIManager
 	void Render()
 	{
 		if (!device)
+			return;
+		if (!rootWindow->isVisible())
 			return;
 		static bool isInit = false;
 		if (!isInit){
@@ -179,8 +210,12 @@ namespace CEGUIManager
 
 	void RunLua(const char*path)
 	{
-		LuaScriptModule *m = (LuaScriptModule*)System::getSingleton().getScriptingModule();
-		m->executeScriptFile(path, ScriptModule::getDefaultResourceGroup());
+		CEGUI::System::getSingleton().executeScriptFile(path, ScriptModule::getDefaultResourceGroup());
+	}
+
+	void RunLua(const std::string &path)
+	{
+		CEGUI::System::getSingleton().executeScriptFile(path, ScriptModule::getDefaultResourceGroup());
 	}
 
 	void CleanUp()

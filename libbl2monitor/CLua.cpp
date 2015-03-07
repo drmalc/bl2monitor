@@ -141,6 +141,7 @@ namespace CLua
 
 		m_pState = luaL_newstate();
 		luaL_openlibs(m_pState); //Opens all standard Lua libraries into the given state.
+		SetupFunctions();
 	}
 
 	void Autorun()

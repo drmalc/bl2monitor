@@ -5,6 +5,7 @@
 #pragma comment(lib, "d3d9.lib")
 #include "Hook.h"
 #include "Log.h"
+#include "Utilities.h"
 
 #define PRESENT_INDEX		17
 #define ENDSCENE_INDEX		42
@@ -26,32 +27,6 @@ namespace DX9Hook
 	static IDirect3DDevice9 *d3d9Device = NULL;
 	static dx9DeviceAvailableType callback = NULL;
 	static endSceneCallbackType endsceneCallback = NULL;
-
-	struct EnumWindowsCallbackArgs {
-		EnumWindowsCallbackArgs(DWORD p) : pid(p) { }
-		const DWORD pid;
-		std::vector<HWND> handles;
-	};
-
-	static BOOL CALLBACK EnumWindowsCallback(HWND hnd, LPARAM lParam)
-	{
-		EnumWindowsCallbackArgs *args = (EnumWindowsCallbackArgs *)lParam;
-		DWORD windowPID;
-		(void)::GetWindowThreadProcessId(hnd, &windowPID);
-		if (windowPID == args->pid) {
-			args->handles.push_back(hnd);
-		}
-		return TRUE;
-	}
-
-	std::vector<HWND> getToplevelWindows()
-	{
-		EnumWindowsCallbackArgs args(::GetCurrentProcessId());
-		if (::EnumWindows(&EnumWindowsCallback, (LPARAM)&args) == FALSE) {
-			return std::vector<HWND>();
-		}
-		return args.handles;
-	}
 
 	//This is the hooked EndScene function.
 	HRESULT _stdcall EndScene(void *pThis)
@@ -139,7 +114,7 @@ namespace DX9Hook
 
 		IDirect3DDevice9	*pI = NULL;
 		HRESULT	hr;
-		HWND	hWnd = getToplevelWindows()[0];
+		HWND	hWnd = Utilities::getToplevelWindows();
 		hr = p->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_NULLREF, hWnd, D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_FPU_PRESERVE, &presParams, &pI);
 
 		if (!pI)
@@ -158,7 +133,7 @@ namespace DX9Hook
 		//Install hook
 		d3d9Hook = new Hook((void*)RealEndScene, (void*)*EndScene);
 		d3d9Hook->Patch();
-		Log::info("...successfully installed d3d9 hook");
+		Log::info("...successfully installed d3d9 hook.");
 
 		return true;
 	}

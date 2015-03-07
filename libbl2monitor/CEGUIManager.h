@@ -1,5 +1,6 @@
 #pragma once
 #include "lua.hpp"
+#include <string>
 
 struct IDirect3DDevice9;
 namespace CEGUIManager
@@ -8,5 +9,6 @@ namespace CEGUIManager
 	void CleanUp();
 	void Render();
 	void RunLua(const char*path);
+	void RunLua(const std::string &path);
 }
 
