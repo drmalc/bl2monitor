@@ -13,6 +13,11 @@ namespace CLua
 {
 	static lua_State	*m_pState = NULL;
 
+	lua_State* getLuaState()
+	{
+		return m_pState;
+	}
+
 	//Simple test function for lua scripts
 	static int ping(lua_State*)
 	{
@@ -103,14 +108,8 @@ namespace CLua
 		{ NULL, NULL }
 	};
 
-	void Initialize()
+	void SetupFunctions()
 	{
-		if (m_pState)
-			return;
-
-		m_pState = luaL_newstate();
-		luaL_openlibs(m_pState); //Opens all standard Lua libraries into the given state.
-
 		//register global functions
 #if LUA_VERSION_NUM > 501
 		lua_getglobal(m_pState, "_G");
@@ -133,6 +132,15 @@ namespace CLua
 
 		//reset the stack (not required)
 		lua_settop(m_pState, 0);
+	}
+
+	void Initialize()
+	{
+		if (m_pState)
+			return;
+
+		m_pState = luaL_newstate();
+		luaL_openlibs(m_pState); //Opens all standard Lua libraries into the given state.
 	}
 
 	void Autorun()

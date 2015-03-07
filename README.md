@@ -14,6 +14,6 @@ Launch bl2 (standalone or steam version), the server will update its status.
 You will see a GUI overlay. That's it.. for now.
 
 Notes:
-- CEGUI is implemented. No Lua binding yet.
+- CEGUI is implemented with Lua bindings.
 - lua is implemented, still needs a lot of work
 - compilation requires DX9 SDK

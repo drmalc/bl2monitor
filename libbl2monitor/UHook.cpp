@@ -147,8 +147,9 @@ namespace UHook
 	void d3d9DeviceAvailable()
 	{
 		CLua::Initialize();
-		CEGUIManager::Initialize(DX9Hook::Device());
-		CLua::Autorun();
+		CEGUIManager::Initialize(DX9Hook::Device(), CLua::getLuaState());
+		CLua::SetupFunctions();
+		CEGUIManager::RunLua("autorun.lua");
 	}
 
 	//This is where we draw our dx stuff.
@@ -286,6 +287,7 @@ namespace UHook
 			isHooked = true;
 			return true;
 		}
+		//---------------------------------
 
 		Log::info("Attempting to find the addresses for the target...");
 		HMODULE		module = GetModuleHandle(NULL);

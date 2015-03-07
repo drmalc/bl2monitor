@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "GameHooks.h"
-#include "CLua.h"
 
 namespace GameHooks
 {
@@ -73,24 +72,24 @@ namespace GameHooks
 		return true;
 	}
 
-	FFI_EXPORT void LUAFUNC_AddStaticEngineHook(UFunction* function, tProcessEventHook* funcHook)
+	void LUAFUNC_AddStaticEngineHook(UFunction* function, tProcessEventHook* funcHook)
 	{
 		CHookManager::tFuncNameHookPair hookPair = std::make_pair("LuaHook", funcHook);
 		EngineHookManager->AddStaticHook(function, hookPair);
 	}
 
-	FFI_EXPORT void LUAFUNC_RemoveStaticEngineHook(UFunction* function)
+	void LUAFUNC_RemoveStaticEngineHook(UFunction* function)
 	{
 		EngineHookManager->RemoveStaticHook(function, "LuaHook");
 	}
 
-	FFI_EXPORT void LUAFUNC_AddStaticScriptHook(UFunction* function, tCallFunctionHook* funcHook)
+	void LUAFUNC_AddStaticScriptHook(UFunction* function, tCallFunctionHook* funcHook)
 	{
 		CHookManager::tFuncNameHookPair hookPair = std::make_pair("LuaHook", funcHook);
 		UnrealScriptHookManager->AddStaticHook(function, hookPair);
 	}
 
-	FFI_EXPORT void LUAFUNC_RemoveStaticScriptHook(UFunction* function)
+	void LUAFUNC_RemoveStaticScriptHook(UFunction* function)
 	{
 		UnrealScriptHookManager->RemoveStaticHook(function, "LuaHook");
 	}
