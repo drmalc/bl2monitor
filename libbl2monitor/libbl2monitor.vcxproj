@@ -69,7 +69,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBBL2MONITOR_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(DXSDK_DIR)\include;$(ProjectDir);$(ProjectDir)/GameSDK;$(SolutionDir)/ext/lua;$(SolutionDir)/ext</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DXSDK_DIR)\include;$(ProjectDir);$(ProjectDir)/GameSDK;$(SolutionDir)/ext/lua;$(SolutionDir)/lfs;$(SolutionDir)/ext</AdditionalIncludeDirectories>
       <UndefinePreprocessorDefinitions>
       </UndefinePreprocessorDefinitions>
       <AdditionalOptions>/GR</AdditionalOptions>
@@ -79,7 +79,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>$(SolutionDir)\ext\lua.lib;$(SolutionDir)\ext\CEGUIBase-0.lib;$(SolutionDir)\ext\CEGUICoreWindowRendererSet.lib;$(SolutionDir)\ext\glfw.lib;$(SolutionDir)\ext\freetype.lib;$(SolutionDir)\ext\CEGUIDirect3D9Renderer-0.lib;dxerr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(TargetDir)\lfs.lib;$(SolutionDir)\ext\lua.lib;$(SolutionDir)\ext\CEGUIBase-0.lib;$(SolutionDir)\ext\CEGUICoreWindowRendererSet.lib;$(SolutionDir)\ext\glfw.lib;$(SolutionDir)\ext\freetype.lib;$(SolutionDir)\ext\CEGUIDirect3D9Renderer-0.lib;dxerr.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)/ext;$(DXSDK_DIR)/Lib/x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -94,10 +94,10 @@ mkdir "$(TargetDir)\data\lua\samples"
 copy /Y "$(SolutionDir)\lua\*.lua" "$(TargetDir)\data\lua"
 copy /Y "$(SolutionDir)\ext\*.dll" "$(TargetDir)\data\dll\"
 copy /Y "$(SolutionDir)\lua\base\*.lua" "$(TargetDir)\data\lua\base"
-copy /Y "$(SolutionDir)\lua\mods\" "$(TargetDir)\data\lua\"
 copy /Y "$(SolutionDir)\lua\samples\*.lua" "$(TargetDir)\data\lua\samples"
 copy /Y  "$(SolutionDir)$(Configuration)\*.dll" "$(SolutionDir)$(Configuration)\data\dll\"
 xcopy "$(SolutionDir)\ext\layout" "$(TargetDir)\data\layout" /E /Y
+xcopy "$(SolutionDir)\lua\mods" "$(TargetDir)\data\lua\mods" /E /Y
 </Command>
     </PostBuildEvent>
     <PreBuildEvent>

@@ -4,6 +4,7 @@
 #include "lua.hpp"
 #include "Utilities.h"
 #include "bl2Methods.h"
+#include "lfs/lfs.h"
 
 #if LUA_VERSION_NUM > 501
 #define lua_strlen lua_rawlen
@@ -141,6 +142,7 @@ namespace CLua
 
 		m_pState = luaL_newstate();
 		luaL_openlibs(m_pState); //Opens all standard Lua libraries into the given state.
+		luaopen_lfs(m_pState);
 		SetupFunctions();
 	}
 

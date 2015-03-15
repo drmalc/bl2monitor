@@ -5,6 +5,7 @@ VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "bl2-monitor", "bl2-monitor\bl2-monitor.csproj", "{B6F8FA04-6267-4635-AA2F-F9B7BF5C2FFB}"
 	ProjectSection(ProjectDependencies) = postProject
+		{BAB3AC51-24AB-4D24-ADA2-3E3877766E63} = {BAB3AC51-24AB-4D24-ADA2-3E3877766E63}
 		{39C6AA90-3294-48AD-98C3-1C27FEFD4672} = {39C6AA90-3294-48AD-98C3-1C27FEFD4672}
 		{079B17DC-9923-4869-B024-9624EC1CC916} = {079B17DC-9923-4869-B024-9624EC1CC916}
 	EndProjectSection
@@ -12,6 +13,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libbl2monitor", "libbl2monitor\libbl2monitor.vcxproj", "{079B17DC-9923-4869-B024-9624EC1CC916}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "miniloader", "miniloader\miniloader.vcxproj", "{39C6AA90-3294-48AD-98C3-1C27FEFD4672}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lfs", "lfs\lfs.vcxproj", "{BAB3AC51-24AB-4D24-ADA2-3E3877766E63}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -61,6 +64,18 @@ Global
 		{39C6AA90-3294-48AD-98C3-1C27FEFD4672}.Release|Win32.ActiveCfg = Release|Win32
 		{39C6AA90-3294-48AD-98C3-1C27FEFD4672}.Release|Win32.Build.0 = Release|Win32
 		{39C6AA90-3294-48AD-98C3-1C27FEFD4672}.Release|x64.ActiveCfg = Release|Win32
+		{BAB3AC51-24AB-4D24-ADA2-3E3877766E63}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{BAB3AC51-24AB-4D24-ADA2-3E3877766E63}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{BAB3AC51-24AB-4D24-ADA2-3E3877766E63}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{BAB3AC51-24AB-4D24-ADA2-3E3877766E63}.Debug|Win32.ActiveCfg = Debug|Win32
+		{BAB3AC51-24AB-4D24-ADA2-3E3877766E63}.Debug|Win32.Build.0 = Debug|Win32
+		{BAB3AC51-24AB-4D24-ADA2-3E3877766E63}.Debug|x64.ActiveCfg = Debug|Win32
+		{BAB3AC51-24AB-4D24-ADA2-3E3877766E63}.Release|Any CPU.ActiveCfg = Release|Win32
+		{BAB3AC51-24AB-4D24-ADA2-3E3877766E63}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{BAB3AC51-24AB-4D24-ADA2-3E3877766E63}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{BAB3AC51-24AB-4D24-ADA2-3E3877766E63}.Release|Win32.ActiveCfg = Release|Win32
+		{BAB3AC51-24AB-4D24-ADA2-3E3877766E63}.Release|Win32.Build.0 = Release|Win32
+		{BAB3AC51-24AB-4D24-ADA2-3E3877766E63}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
