@@ -11,7 +11,7 @@ namespace Utilities
 	static const char pipeName[] = "\\\\.\\pipe\\bl2monitorpipeutils";
 	static char serverPath[MAX_PATH] = { 0 };
 	static char mainLuaPath[MAX_PATH] = { 0 };
-	static char imagesPath[MAX_PATH] = { 0 }; //deprecated
+	static char logPath[MAX_PATH] = { 0 };
 	static char layoutPath[MAX_PATH] = { 0 };
 
 	void SendRequest(const char*req, unsigned len, char* buffer, unsigned *buflen)
@@ -90,14 +90,14 @@ namespace Utilities
 		return mainLuaPath;
 	}
 
-	const char *ImagesPath()
+	const char *LogPath()
 	{
-		const char req[] = "IMAGES\n";
-		if (*imagesPath)
-			return imagesPath;
-		unsigned l = sizeof(imagesPath);
-		SendRequest(req, sizeof(req) - 1, imagesPath, &l);
-		return imagesPath;
+		const char req[] = "LOG\n";
+		if (*logPath)
+			return logPath;
+		unsigned l = sizeof(logPath);
+		SendRequest(req, sizeof(req) - 1, logPath, &l);
+		return logPath;
 	}
 
 	const char *LayoutPath()
@@ -139,4 +139,35 @@ namespace Utilities
 		}
 		return topWnd = args.handles[0];
 	}
+
+	DWORD GetMainThreadId(DWORD dwPid)
+	{
+		LPVOID lpTid;
+		_asm
+		{
+			mov eax, fs:[18h]
+			add eax, 36
+			mov[lpTid], eax
+		}
+		HANDLE hProcess = OpenProcess(PROCESS_VM_READ, FALSE, dwPid);
+		if (hProcess == NULL)
+			return NULL;
+		DWORD dwTid;
+		if (ReadProcessMemory(hProcess, lpTid, &dwTid, sizeof(dwTid), NULL) == FALSE)
+		{
+			CloseHandle(hProcess);
+			return NULL;
+		}
+		CloseHandle(hProcess);
+		return dwTid;
+	}
+
+	HANDLE GetMainThreadHandle(DWORD dwPid, DWORD dwDesiredAccess)
+	{
+		DWORD dwTid = GetMainThreadId(dwPid);
+		if (dwTid == FALSE)
+			return NULL;
+		return OpenThread(dwDesiredAccess, FALSE, dwTid);
+	}
+
 }

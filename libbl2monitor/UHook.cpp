@@ -14,6 +14,8 @@
 #include <Windows.h>
 #include <tchar.h>
 #include <winternl.h>
+#include <iostream>
+#include <fstream>
 #define STATUS_SUCCESS ((NTSTATUS)0x00000000L)
 #define STATUS_PORT_NOT_SET ((NTSTATUS)0xC0000353L)
 
@@ -21,7 +23,10 @@ using namespace std;
 
 namespace UHook
 {
-	bool isHooked = false;
+	//State
+	static bool isHooked = false;
+	static bool traceCalls = false;
+	static std::ofstream traceLogFile;
 
 	//Prototypes for hookable functions
 	typedef void(__thiscall *tProcessEvent) (UObject*, UFunction*, void*, void*);
@@ -51,9 +56,8 @@ namespace UHook
 	FMalloc** pGMalloc;
 
 	//Hard hooks
-	Hook	*processEventHook = NULL, *callFunctionHook = NULL;
-
-	Hook	*setInfoHook = NULL, *queryInfoHook = NULL;
+	static Hook	*processEventHook = NULL, *callFunctionHook = NULL;
+	static Hook	*setInfoHook = NULL, *queryInfoHook = NULL;
 	typedef NTSTATUS(WINAPI* tNtSIT) (HANDLE, THREAD_INFORMATION_CLASS, PVOID, ULONG);
 	tNtSIT pNtSetInformationThread = nullptr;
 	typedef NTSTATUS(WINAPI* tNtQIP) (HANDLE, PROCESSINFOCLASS, PVOID, ULONG, PULONG);
@@ -65,10 +69,13 @@ namespace UHook
 		UObject* pThis;
 		_asm mov pThis, ecx;
 
-		std::string callerName = pThis->GetFullName();
-		std::string functionName = fct->GetFullName();
-
-		Log::debug("ProcessEvent: %s | %s", callerName.c_str(), functionName.c_str());
+		//Log::debug("ProcessEvent: %s | %s", callerName.c_str(), functionName.c_str());
+		if (traceCalls)
+		{
+			std::string callerName = pThis->GetFullName();
+			std::string functionName = fct->GetFullName();
+			traceLogFile << "ProcessEvent: " << callerName.c_str() << " | " << functionName.c_str() << std::endl;
+		}
 
 		if (!GameHooks::ProcessEngineHooks(pThis, fct, Parms, result))
 		{
@@ -82,16 +89,21 @@ namespace UHook
 		processEventHook->Patch();
 	}
 
-	void __stdcall hookedCallFunction(FFrame& stack, void* const result, UFunction* function)
+	void __stdcall hookedCallFunction(FFrame& stack, void* const result, UFunction* fct)
 	{
 		UObject* pThis;
 		_asm mov pThis, ecx;
 
-
+		if (traceCalls)
+		{
+			std::string callerName = pThis->GetFullName();
+			std::string functionName = fct->GetFullName();
+			traceLogFile << "CallFunction: " << callerName.c_str() << " | " << functionName.c_str() << std::endl;
+		}
 
 		//Call original function
 		callFunctionHook->Unpatch();
-		pCallFunction(pThis, stack, result, function);
+		pCallFunction(pThis, stack, result, fct);
 		callFunctionHook->Patch();
 	}
 
@@ -163,11 +175,11 @@ namespace UHook
 	{
 		Log::info("StartupSDK soft hook called.");
 
-		//Init console
+		//Init in-game console
 		bl2Methods::logToConsole(NULL);
 
 		GameHooks::EngineHookManager->RemoveStaticHook(function, "StartupSDK");
-		//GameHooks::EngineHookManager->Register("Function WillowGame.WillowGameViewportClient:PostRender", "GetCanvas", &GetCanvasPostRender);
+#if LIVEHOOK
 		if (!DX9Hook::Initialize())
 		{
 			Log::error("Failed to hook d3d9.");
@@ -176,7 +188,19 @@ namespace UHook
 		{
 			GameHooks::EngineHookManager->Register("Function WillowGame.WillowGameViewportClient:InputKey", "InputKey", &InputKey);
 		}
+#else
+		GameHooks::EngineHookManager->Register("Function WillowGame.WillowGameViewportClient:InputKey", "InputKey", &InputKey);
+#endif
 		return true;
+	}
+
+	void reinitLuaAndCEGUI()
+	{
+		CEGUIManager::CleanUp();
+		CLua::CleanUp();
+		CLua::Initialize();
+		CEGUIManager::Initialize(DX9Hook::Device(), CLua::getLuaState());
+		CEGUIManager::RunLua("autorun.lua");
 	}
 
 	//Called for any input, including mouse clicks.
@@ -187,28 +211,59 @@ namespace UHook
 		if (realParms->EventType == 0) //key down
 		{
 			const char* name = realParms->Key.GetName();
+			if (traceCalls)
+			{
+				traceLogFile << "InputKey Down: " << name << std::endl;
+			}
+
 			if (strcmp(name, "F2") == 0)
 			{
-				//debug tests
+				if (!traceCalls)
+				{
+					//Start trace
+					const char *filePath = Utilities::LogPath();
+					char buffer[MAX_PATH] = { 0 };
 
-				Log::info("Server path: %s", Utilities::ServerPath());
+					sprintf_s(buffer, "%s/GObjObjects.log", filePath);
+					std::ofstream objLogFile;
+					objLogFile.open(buffer, std::ofstream::out);
+					for (int i = 0; i < UObject::GObjObjects()->Count; ++i)
+					{
+						UObject* Object = UObject::GObjObjects()->Data[i];
+						// skip no T class objects
+						if (!Object)
+							continue;
+						sprintf_s(buffer, "[%06d] %s", i, Object->GetFullName().c_str());
+						objLogFile << buffer << std::endl;
+					}
+					objLogFile.close();
+
+					sprintf_s(buffer, "%s/utrace.log", filePath);
+					traceLogFile.open(buffer, std::ofstream::out);
+					if (traceLogFile.is_open())
+					{
+						traceLogFile.clear();
+						Log::info("UTrace started.");
+						traceCalls = true;
+					}
+				}
+				else
+				{
+					//Stop trace
+					traceCalls = false;
+					if (traceLogFile.is_open())
+					{
+						traceLogFile.close();
+						Log::info("UTrace stopped.");
+					}
+				}
+				return true;
 			}
 			else if (strcmp(name, "F1") == 0)
 			{
-				Log::info("InputKey soft hook called for key F1.");
-
-				/*//dump GObjObjects
-				TArray< UObject* >* ar = UObject::GObjObjects();
-				TArray< UObject* >	r = *ar;
-				int k = ar->Count;
-				for (int i = 0; k > i; i++)
-				{
-					Log::debug("GObjObjects | %s", ((UObject*)(r(i)))->GetFullName().c_str());
-				}
-				return true;*/
-
-				//UObject::dumpObjects();
-
+				reinitLuaAndCEGUI();
+				return true;
+				/*
 				UObject* gameEngine = bl2Methods::getGameEngine();
 				Log::info("Game engine is: 0x%p", gameEngine);
 				if (gameEngine)
@@ -243,8 +298,8 @@ namespace UHook
 								);
 						}
 					}
-
-				}
+					
+				}*/
 			}
 		}
 
@@ -380,7 +435,9 @@ namespace UHook
 
 		DX9Hook::SetDeviceAvailableCallback(&d3d9DeviceAvailable);
 		DX9Hook::SetEndSceneCallback(&renderScene);
-
+#if !LIVEHOOK
+		DX9Hook::Initialize();
+#endif
 		//setupAntiAntiDebug();
 
 		return isHooked;

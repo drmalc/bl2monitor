@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
 
+#define LIVEHOOK 1
+
 struct IDirect3DDevice9;
 namespace DX9Hook
 {

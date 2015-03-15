@@ -22,9 +22,9 @@ namespace CEGUIManager
 
 	using namespace CEGUI;
 	static Window *rootWindow = NULL;
-	static FrameWindow *mainFrameWindow = NULL;
 	static ImageCodec* d_imageCodec = NULL;
 	static ResourceProvider* d_resourceProvider = NULL;
+	static LuaScriptModule *luaModule = NULL;
 
 	static bool InputKey(UObject* caller, UFunction* function, void* parms, void* result)
 	{
@@ -125,6 +125,7 @@ namespace CEGUIManager
 
 		//Create lua module
 		LuaScriptModule& script_module = LuaScriptModule::create(luaState);
+		luaModule = &script_module;
 
 		//Init system
 		System::create(myRenderernderer, d_resourceProvider, 0, d_imageCodec, &script_module);
@@ -181,6 +182,12 @@ namespace CEGUIManager
 		rootWindow = wmgr.createWindow("DefaultWindow", "root");
 		System::getSingleton().getDefaultGUIContext().setRootWindow(rootWindow);
 
+		//Create main window
+		/*mainFrameWindow = (FrameWindow*)wmgr.createWindow("TaharezLook/FrameWindow", "luaLoaderWindow");
+		rootWindow->addChild(mainFrameWindow);
+		mainFrameWindow->setPosition(UVector2(UDim(0.1, 0.0), UDim(0.8, 0.0)));
+		mainFrameWindow->setSize(USize(UDim(0.1, 0.0), UDim(0.1, 0.0)));*/
+
 		//Setup IOs
 		GameHooks::EngineHookManager->Register("Function WillowGame.WillowGameViewportClient:InputKey", "CEGUIInputKey", &InputKey);
 		GameHooks::EngineHookManager->Register("Function WillowGame.WillowGameViewportClient:InputAxis", "CEGUIInputAxis", &InputAxis);
@@ -220,7 +227,31 @@ namespace CEGUIManager
 
 	void CleanUp()
 	{
-
+		if (!device)
+			return;
+		device = NULL;
+		if (rootWindow)
+		{
+			WindowManager::getSingleton().destroyAllWindows();
+			rootWindow = NULL;
+		}
+		if (d_imageCodec)
+		{
+			delete d_imageCodec;
+			d_imageCodec = NULL;
+		}
+		if (d_resourceProvider)
+		{
+			delete d_resourceProvider;
+			d_resourceProvider = NULL;
+		}
+		System::destroy();
+		if (luaModule)
+		{
+			//luaModule->destroyBindings();
+			LuaScriptModule::destroy(*luaModule);
+			luaModule = NULL;
+		}
 	}
 }
 

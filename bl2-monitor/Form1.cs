@@ -136,13 +136,12 @@ namespace bl2_monitor
                         PServerUtils.SendMessage(serverDirPath+"\n", PServerUtils.clientse);
                     }
                     else if ("LUAMAIN" == str)
-                    {
+                    {//deprecated
                         PServerUtils.SendMessage(serverDirPath + Path.DirectorySeparatorChar + "data" + Path.DirectorySeparatorChar + "lua" + Path.DirectorySeparatorChar + "autorun.lua\n", PServerUtils.clientse);
                     }
-                    else if ("IMAGES" == str)
+                    else if ("LOG" == str)
                     {
-                        //deprecated
-                        PServerUtils.SendMessage(serverDirPath + Path.DirectorySeparatorChar + "data" + Path.DirectorySeparatorChar + "images" + Path.DirectorySeparatorChar + "\n", PServerUtils.clientse);
+                        PServerUtils.SendMessage(serverDirPath + Path.DirectorySeparatorChar + "data" + Path.DirectorySeparatorChar + "log" + Path.DirectorySeparatorChar + "\n", PServerUtils.clientse);
                     }
                     else if ("LAYOUT" == str)
                     {

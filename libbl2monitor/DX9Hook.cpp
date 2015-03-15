@@ -9,6 +9,7 @@
 
 #define PRESENT_INDEX		17
 #define ENDSCENE_INDEX		42
+#define CREATEDEVICE_INDEX	16
 
 using namespace std;
 namespace DX9Hook
@@ -20,6 +21,14 @@ namespace DX9Hook
 	typedef HRESULT(_stdcall *RealEndSceneFuncType)(void *pThis);
 	RealEndSceneFuncType RealEndScene;
 	HRESULT _stdcall EndScene(void *pThis);
+
+#if !LIVEHOOK
+	typedef HRESULT(WINAPI* RealCreateDeviceFuncType)(IDirect3D9*, UINT, D3DDEVTYPE, HWND, DWORD, D3DPRESENT_PARAMETERS*, IDirect3DDevice9**);
+	RealCreateDeviceFuncType RealCreateDevice = NULL;
+	HRESULT WINAPI hkCreateDevice(IDirect3D9* pD3D, UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow, DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters,
+		IDirect3DDevice9** ppReturnedDeviceInterface);
+	static Hook *d3d9CreateDeviceHook = NULL;
+#endif
 
 	static Hook *d3d9Hook = NULL;
 	static bool isInit = false;
@@ -86,6 +95,29 @@ namespace DX9Hook
 		return hr;
 	}
 
+#if !LIVEHOOK
+	HRESULT WINAPI hkCreateDevice(IDirect3D9* pD3D, UINT Adapter, D3DDEVTYPE DeviceType, HWND hFocusWindow,
+		DWORD BehaviorFlags, D3DPRESENT_PARAMETERS* pPresentationParameters,
+		IDirect3DDevice9** ppReturnedDeviceInterface)
+	{
+		d3d9CreateDeviceHook->Unpatch();
+		HRESULT result = RealCreateDevice(pD3D, Adapter, DeviceType, hFocusWindow, BehaviorFlags, pPresentationParameters, ppReturnedDeviceInterface);
+
+		Log::info("...successfully installed d3d9 hook.");
+
+		IDirect3DDevice9	*pI = *ppReturnedDeviceInterface;
+		PVOID	*pVTable = (PVOID*)*((DWORD*)pI);
+		RealPresent = (RealPresentFuncType)pVTable[PRESENT_INDEX];
+		RealEndScene = (RealEndSceneFuncType)pVTable[ENDSCENE_INDEX];
+
+		//Install hook
+		d3d9Hook = new Hook((void*)RealEndScene, (void*)*EndScene);
+		d3d9Hook->Patch();
+
+		return result;
+	}
+#endif
+
 	void SetDeviceAvailableCallback(dx9DeviceAvailableType cb)
 	{
 		callback = cb;
@@ -100,9 +132,24 @@ namespace DX9Hook
 	{
 		if (d3d9Hook)
 			return true;
-
 		Log::info("Attempting to hook d3d9...");
 
+#if !LIVEHOOK
+		if (d3d9CreateDeviceHook)
+			return true;
+		LPDIRECT3D9 d3d = ::Direct3DCreate9(D3D_SDK_VERSION);
+		if (!d3d)
+			return false;
+
+		PDWORD		D3DVTable = (PDWORD)*(PDWORD)d3d;
+		d3d->Release();
+
+		RealCreateDevice = (RealCreateDeviceFuncType)D3DVTable[CREATEDEVICE_INDEX];
+		d3d9CreateDeviceHook = new Hook((void*)RealCreateDevice, (void*)*hkCreateDevice);
+		d3d9CreateDeviceHook->Patch();
+#endif
+
+#if LIVEHOOK
 		LPDIRECT3D9 p = ::Direct3DCreate9(D3D_SDK_VERSION);
 		if (!p)
 			return false;
@@ -134,7 +181,7 @@ namespace DX9Hook
 		d3d9Hook = new Hook((void*)RealEndScene, (void*)*EndScene);
 		d3d9Hook->Patch();
 		Log::info("...successfully installed d3d9 hook.");
-
+#endif
 		return true;
 	}
 
