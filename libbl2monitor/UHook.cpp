@@ -83,6 +83,8 @@ namespace UHook
 			return;
 		}
 
+		CLua::processLuaEngineHooks(pThis, fct, Parms);
+
 		//Call original function
 		processEventHook->Unpatch();
 		pProcessEvent(pThis, fct, Parms, result);
@@ -166,6 +168,7 @@ namespace UHook
 	//This is where we draw our dx stuff.
 	void renderScene()
 	{
+		CLua::processPreRender();
 		CEGUIManager::Render();
 	}
 
@@ -216,8 +219,9 @@ namespace UHook
 				traceLogFile << "InputKey Down: " << name << std::endl;
 			}
 
-			if (strcmp(name, "F2") == 0)
+			if (strcmp(name, "F8") == 0)
 			{
+				return true;
 				if (!traceCalls)
 				{
 					//Start trace
@@ -260,6 +264,11 @@ namespace UHook
 				return true;
 			}
 			else if (strcmp(name, "F1") == 0)
+			{
+				CLua::callToggleVisibility(); //this will be implemented in autorun eventually.
+				return true;
+			}
+			else if (strcmp(name, "F2") == 0)
 			{
 				reinitLuaAndCEGUI();
 				return true;

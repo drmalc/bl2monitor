@@ -5,6 +5,8 @@
 #include "Utilities.h"
 #include "bl2Methods.h"
 #include "lfs/lfs.h"
+#include "GameHooks.h"
+#include <vector>
 
 #if LUA_VERSION_NUM > 501
 #define lua_strlen lua_rawlen
@@ -12,35 +14,19 @@
 
 namespace CLua
 {
+	static int LUAFUNC_RemoveEngineHook(lua_State* L);
+	static int LUAFUNC_AddEngineHook(lua_State* L);
+	static int LUAFUNC_RemoveAllEngineHooks(lua_State* L);
+	static int LUAFUNC_addPrerenderCallback(lua_State* L);
+	static int LUAFUNC_removePrerenderCallback(lua_State* L);
+	static int LUAFUNC_removeAllPrerenderCallbacks(lua_State* L);
+
 	static lua_State	*m_pState = NULL;
 
 	lua_State* getLuaState()
 	{
 		return m_pState;
 	}
-
-	//Simple test function for lua scripts
-	static int ping(lua_State*)
-	{
-		Log::lua("Hello World");
-		return 0;
-	}
-
-	//Simple test class for lua scripts
-	class TestClass
-	{
-	private:
-		int myInt;
-	public:
-		TestClass(int i){ myInt = i; }
-		~TestClass(){
-			Log::info("TestClass: Destroying object.");
-		}
-		int PrintSomething(){
-			Log::info("TestClass: PrintSomething called with myInt=%d", myInt);
-			return myInt;
-		}
-	};
 
 	static void getLuaDirPath(char *buffer)
 	{
@@ -95,10 +81,15 @@ namespace CLua
 
 	//Global functions
 	static const luaL_Reg base_funcs[] = {
-		{ "ping", ping },
 		{ "luaPath", luaPath },
 		{ "luaModPath", luaModPath },
 		{ "luaDestroy", luaDestroy },
+		{ "addEngineHook", LUAFUNC_AddEngineHook },
+		{ "removeEngineHook", LUAFUNC_RemoveEngineHook },
+		{ "removeAllEngineHooks", LUAFUNC_RemoveAllEngineHooks },
+		{ "addPrerenderCallback", LUAFUNC_addPrerenderCallback },
+		{ "removePrerenderCallback", LUAFUNC_removePrerenderCallback },
+		{ "removeAllPrerenderCallbacks", LUAFUNC_removeAllPrerenderCallbacks },
 		{ NULL, NULL }
 	};
 
@@ -193,5 +184,127 @@ namespace CLua
 
 		lua_close(m_pState);
 		m_pState = NULL;
+	}
+
+	static std::map<std::string, std::string>	luaEngineHooks;
+	static int LUAFUNC_AddEngineHook(lua_State* L)
+	{
+		const char *cfctName = luaL_checkstring(L, 1);
+		const char *ccallbackName = luaL_checkstring(L, 2);
+
+		std::string fctName(cfctName);
+		std::string callbackName(ccallbackName);
+
+		luaEngineHooks[callbackName] = fctName;
+
+		return 0;
+	}
+
+	static int LUAFUNC_RemoveEngineHook(lua_State* L)
+	{
+		const char *ccallbackName = luaL_checkstring(L, 1);
+		luaEngineHooks.erase(ccallbackName);
+		return 0;
+	}
+
+	static int LUAFUNC_RemoveAllEngineHooks(lua_State* L)
+	{
+		luaEngineHooks.clear();//still needs thread safety
+		return 0;
+	}
+
+	void processLuaEngineHooks(UObject* object, UFunction* ufct, void* parms)
+	{
+		std::string fctName = ufct->GetFullName();
+		for (std::map<std::string, std::string>::iterator it = luaEngineHooks.begin(); it != luaEngineHooks.end(); ++it)
+		{
+			if (it->second == fctName)
+			{
+				const char *n = it->first.c_str();
+				const char *c = strstr(n, ".")+1;
+				char buffer[50];
+				strncpy_s(buffer, n, c - n - 1);
+
+				lua_getglobal(m_pState, buffer);
+				lua_getfield(m_pState, -1, c);
+				if (!lua_isfunction(m_pState, -1))
+				{
+					Log::warning("Lua callback not found: Table=%s Field=%s", buffer, c);
+				}
+				else
+				{
+					/*lua_pushinteger(m_pState, (lua_Integer)object);
+					lua_pushinteger(m_pState, (lua_Integer)ufct);
+					lua_pushinteger(m_pState, (lua_Integer)parms);*/
+					lua_call(m_pState, 0, 0);
+				}
+			}
+		}
+	}
+
+	static std::vector<std::string>	prerenderCallbacks;
+	static int LUAFUNC_addPrerenderCallback(lua_State* L)
+	{
+		const char *ccallbackName = luaL_checkstring(L, 1);
+		std::string callbackName(ccallbackName);
+		prerenderCallbacks.insert(prerenderCallbacks.end(), callbackName);
+		return 0;
+	}
+
+	static int LUAFUNC_removeAllPrerenderCallbacks(lua_State* L)
+	{
+		prerenderCallbacks.clear();
+		return 0;
+	}
+
+	static int LUAFUNC_removePrerenderCallback(lua_State* L)
+	{
+		const char *ccallbackName = luaL_checkstring(L, 1);
+		std::string callbackName(ccallbackName);
+		//prerenderCallbacks.erase(std::remove(prerenderCallbacks.begin(), prerenderCallbacks.end(), callbackName), prerenderCallbacks.end()); //??
+		for (std::vector<std::string>::iterator it = prerenderCallbacks.begin(); it != prerenderCallbacks.end(); ++it)
+		{
+			if (*it == callbackName)
+			{
+				prerenderCallbacks.erase(it);
+				break;
+			}
+		}
+		return 0;
+	}
+
+	static int processPreRenderCount = 0;
+	void processPreRender()
+	{
+		processPreRenderCount++;
+		if (6 != processPreRenderCount)
+			return;
+		processPreRenderCount = 0;
+		for (std::vector<std::string>::iterator it = prerenderCallbacks.begin(); it != prerenderCallbacks.end(); ++it)
+		{
+			const char *n = it->c_str();
+			const char *c = strstr(n, ".") + 1;
+			char buffer[50];
+			strncpy_s(buffer, n, c - n - 1);
+
+			lua_getglobal(m_pState, buffer);
+			lua_getfield(m_pState, -1, c);
+			if (!lua_isfunction(m_pState, -1))
+			{
+				Log::warning("Lua callback not found: Table=%s Field=%s", buffer, c);
+			}
+			else
+			{
+				lua_call(m_pState, 0, 0);
+			}
+		}
+	}
+
+	void callToggleVisibility()
+	{
+		if (!m_pState)
+			return;
+		lua_getglobal(m_pState, "toggle_visibility");
+		lua_pcall(m_pState, 0, 0, 0);
 	}
 }

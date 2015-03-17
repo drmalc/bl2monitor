@@ -26,12 +26,25 @@ namespace CEGUIManager
 	static ResourceProvider* d_resourceProvider = NULL;
 	static LuaScriptModule *luaModule = NULL;
 
+	static void updateMousePosition()
+	{
+		POINT p;
+		if (::GetCursorPos(&p))
+		{
+			if (::ScreenToClient(Utilities::getToplevelWindows(), &p))
+			{
+				CEGUI::System::getSingleton().getDefaultGUIContext().injectMousePosition((float)p.x, (float)p.y);
+			}
+		}
+	}
+
 	static bool InputKey(UObject* caller, UFunction* function, void* parms, void* result)
 	{
 		if (!rootWindow->isVisible())
 			return true;
 
 		UWillowGameViewportClient_execInputKey_Parms* realParms = reinterpret_cast<UWillowGameViewportClient_execInputKey_Parms*>(parms);
+		updateMousePosition();
 
 		if (realParms->EventType == (int)BUTTON_STATE_Pressed)
 		{
@@ -86,15 +99,7 @@ namespace CEGUIManager
 	{
 		if (!rootWindow->isVisible())
 			return true;
-
-		POINT p;
-		if (::GetCursorPos(&p))
-		{
-			if (::ScreenToClient(Utilities::getToplevelWindows(), &p))
-			{
-				CEGUI::System::getSingleton().getDefaultGUIContext().injectMousePosition((float)p.x, (float)p.y);
-			}
-		}
+		updateMousePosition();
 		return true;
 	}
 
@@ -169,6 +174,7 @@ namespace CEGUIManager
 		//Register resources
 		SchemeManager::getSingleton().createFromFile("TaharezLook.scheme");
 		FontManager::getSingleton().createFromFile("DejaVuSans-10.font");
+		FontManager::getSingleton().createFromFile("DejaVuSans-28.font");
 
 		//Setup some defaults
 		System::getSingleton().getDefaultGUIContext().getMouseCursor().setDefaultImage("TaharezLook/MouseArrow");
